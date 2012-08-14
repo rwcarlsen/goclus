@@ -1,6 +1,8 @@
 
 package books
 
+import "encoding/json"
+
 var BK := Books{}
 
 func RegisterTrans(t *Transaction) {
@@ -16,4 +18,20 @@ func (b *Books) RegisterTrans(t *Transaction) {
     b.Transes = []*Transaction{}
   }
   b.Transes = append(b.Transes, t)
+}
+
+func (b *Books) Dump(name string) error {
+  data, err := json.Marshal(b)
+  if err != nil {
+    return err
+  }
+
+  f, err := os.Create(name)
+  if err != nil {
+    return err
+  }
+  defer f.Close()
+
+  f.Write(data)
+  return nil
 }

@@ -1,28 +1,53 @@
 
 package trans
 
+type TransType int
+
+const (
+  Offer TransType = iota
+  Request
+)
+
 type Supplier interface {
-  RemoveResource(*Transaction) []*Resource
+  RemoveResource(*Transaction)
 }
 
 type Requester interface {
-  AddResource(*Transaction, []*Resource)
+  AddResource(*Transaction)
 }
 
 type Transaction struct {
+  Type TransType
   Res *Resource
   Sup Supplier
   Req Requester
-  manifest []Resource
+  Manifest []*Resource
 }
 
-func (t *Transaction) Manifest() {
-  return t.manifest
+func NewOffer(sup Supplier) {
+  return &Transaction{
+    Type: Offer,
+    Sup: sup,
+  }
+}
+
+func (t *Transaction) MatchWith(other *Transaction) error {
+  if t.Type != other.Type {
+    return errors.New("trans: Incompatible transaction types")
+  }
+
+  if t.Type == Offer {
+    t.Req = other.Req
+    other.Sup = t.Sup
+  } else {
+    t.Sup = other.Sup
+    other.Req = t.Req
+  }
 }
 
 func (t *Transaction) Approve() {
-  manifest := t.Sup.RemoveResource(t)
-  t.Req.AddResource(t, manifest)
+  t.Sup.RemoveResource(t)
+  t.Req.AddResource(t)
 }
 
 func (t *Transaction) Clone() *Transaction {
