@@ -12,6 +12,14 @@ const (
   Down
 )
 
+type Index struct {
+
+}
+
+func (ind *Index) Register(name string, who Communicator) {
+
+}
+
 type Communicator interface {
   Receive(*Message)
   Parent() Communicator
