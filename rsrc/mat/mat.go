@@ -66,7 +66,7 @@ type Composition struct {
 
 }
 
-// Mix creates a compositional mix of the comp with other where ratio is qty of
+// Mix adjusts the composition by combining it with other where ratio is qty of
 // the comp divided by the qty of other.
 //
 // Negative ratios imply subtracting/removal.

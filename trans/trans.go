@@ -13,6 +13,11 @@ type Transaction struct {
   Res *Resource
   Sup Supplier
   Req Requester
+  manifest []Resource
+}
+
+func (t *Transaction) Manifest() {
+  return t.manifest
 }
 
 func (t *Transaction) Approve() {
