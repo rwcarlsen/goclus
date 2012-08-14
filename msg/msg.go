@@ -1,5 +1,5 @@
 
-package comm
+package msg
 
 import (
   "github.com/rwcarlsen/goclus/trans"
@@ -28,7 +28,7 @@ type Message struct {
   hasDest bool
 }
 
-func NewMsg(sender, receiver Communicator) *Message {
+func New(sender, receiver Communicator) *Message {
   return &Message{
     Sender: sender,
     Receiver: receiver,

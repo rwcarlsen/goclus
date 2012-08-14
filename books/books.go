@@ -20,6 +20,7 @@ func (b *Books) RegisterTrans(t *Transaction) {
   b.Transes = append(b.Transes, t)
 }
 
+// Dump needs more work - as it stands, it will likely cause infinite looping
 func (b *Books) Dump(name string) error {
   data, err := json.Marshal(b)
   if err != nil {
