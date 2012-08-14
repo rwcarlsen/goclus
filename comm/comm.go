@@ -28,7 +28,7 @@ type Message struct {
   hasDest bool
 }
 
-func New(sender, receiver Communicator) *Message {
+func NewMsg(sender, receiver Communicator) *Message {
   return &Message{
     Sender: sender,
     Receiver: receiver,
