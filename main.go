@@ -22,19 +22,21 @@ func main() {
 }
 
 func config(simul *sim.Sim) {
+  milk := "milk"
+  cheese := "cheese"
   src := &fac.Fac{
-    OutCommod: "milk",
-    OutUnits: "milk",
+    OutCommod: milk,
+    OutUnits: milk,
     CreateRate: rsrc.INFINITY,
     Sim: simul,
   }
   src.OutSize(5)
 
   null := &fac.Fac{
-    InCommod: "milk",
-    InUnits: "milk",
-    OutCommod: "cheese",
-    OutUnits: "cheese",
+    InCommod: milk,
+    InUnits: milk,
+    OutCommod: cheese,
+    OutUnits: cheese,
     ConvertAmt: 5,
     ConvertPeriod: 1,
     ConvertOffset: 0,
@@ -44,10 +46,10 @@ func config(simul *sim.Sim) {
   null.OutSize(5)
 
   null2 := &fac.Fac{
-    InCommod: "cheese",
-    InUnits: "cheese",
-    OutCommod: "milk",
-    OutUnits: "milk",
+    InCommod: cheese,
+    InUnits: cheese,
+    OutCommod: milk,
+    OutUnits: milk,
     ConvertAmt: 5,
     ConvertPeriod: 1,
     ConvertOffset: 0,
@@ -57,22 +59,22 @@ func config(simul *sim.Sim) {
   null2.OutSize(3)
 
   snk := &fac.Fac{
-    InCommod: "cheese",
-    InUnits: "cheese",
+    InCommod: cheese,
+    InUnits: cheese,
     Sim: simul,
   }
   snk.OutSize(rsrc.INFINITY)
 
   milkMkt := &mkt.Mkt{
-    Commod: "milk",
     Shuffle: true,
   }
 
   cheeseMkt := &mkt.Mkt{
-    Commod: "cheese",
     Shuffle: true,
   }
 
   simul.Eng.RegisterTickTock(src, snk, null, null2)
   simul.Eng.RegisterResolve(milkMkt, cheeseMkt)
+  simul.Mkts[milk] = milkMkt
+  simul.Mkts[cheese] = cheeseMkt
 }
