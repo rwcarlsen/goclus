@@ -1,7 +1,10 @@
 
 package rsrc
 
-const EPS = 1e-6
+const (
+  EPS = 1e-6
+  INFINITY = 1e25
+)
 
 type Resource interface {
   Type() string

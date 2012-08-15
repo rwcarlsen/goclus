@@ -33,13 +33,13 @@ func New(sender, receiver Communicator) *Message {
     Sender: sender,
     Receiver: receiver,
     owner: sender,
-    pathStack: []Communicator{sender}
+    pathStack: []Communicator{sender},
   }
 }
 
 func (m *Message) Clone() *Message {
   clone := *m
-  clone.Trans := m.Trans.Clone()
+  clone.Trans = m.Trans.Clone()
   return &clone
 }
 
@@ -51,7 +51,7 @@ func (m *Message) SendOn() {
   m.validateForSend()
 
   if m.Dir == Down {
-    m.pathStack[:len(m.pathStack)-1]
+    m.pathStack = m.pathStack[:len(m.pathStack)-1]
   }
 
   next := m.pathStack[len(m.pathStack)-1]
@@ -70,11 +70,11 @@ func (m *Message) SetDest(dest Communicator) {
 }
 
 func (m *Message) autoSetDest() {
-  next := owner.Parent()
+  next := m.owner.Parent()
   if next == nil {
     next = m.Receiver
   }
-  m.setDest(next)
+  m.SetDest(next)
 }
 
 func (m *Message) validateForSend() {

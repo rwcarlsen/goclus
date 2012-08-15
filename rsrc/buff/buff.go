@@ -1,27 +1,22 @@
 
 package buff
 
+import (
+  "errors"
+  "github.com/rwcarlsen/goclus/rsrc"
+)
+
 var (
   OverCapErr = errors.New("buff: cannot hold more than its capacity")
   TooSmallErr = errors.New("buff: operation results in negligible quantities")
 )
 
 type Buffer struct {
-  unlimited bool
   capacity float64
   res []rsrc.Resource
 }
 
-func (b *Buffer) init() {
-  if res == nil {
-    res = []rsrc.Resource{}
-  }
-}
-
 func (b *Buffer) Capacity() float64 {
-  if b.unlimited {
-    return -1
-  }
   return b.capacity
 }
 
@@ -46,26 +41,7 @@ func (b *Buffer) Qty() float64 {
 }
 
 func (b *Buffer) Space() float64 {
-  if b.unlimited {
-    return -1
-  }
   return b.capacity - b.Qty()
-}
-
-func (b *Buffer) IsUnlimited() bool {
-  return b.unlimited
-}
-
-func (b *Buffer) MakeUnlimited() {
-  b.unlimited = true
-}
-
-func (b *Buffer) MakeLimited(capacity float64) error {
-  err := b.SetCapacity(capacity)
-  if err != nil {
-    return err
-  }
-  b.unlimited = false
 }
 
 func (b *Buffer) PopQty(qty float64) ([]rsrc.Resource, error) {
@@ -83,7 +59,7 @@ func (b *Buffer) PopQty(qty float64) ([]rsrc.Resource, error) {
       leftover := r.Clone()
       leftover.SetQty(quan - left)
       r.SetQty(left)
-      b.res = append([]rsrc.Resource{}, leftover, b.res...)
+      b.res = append([]rsrc.Resource{leftover}, b.res...)
     }
     popped = append(popped, r)
   }
@@ -94,7 +70,8 @@ func (b *Buffer) PopN(num int) ([]rsrc.Resource, error) {
   if len(b.res) < num {
     return nil, TooSmallErr
   }
-  popped, b.res := b.res[:num], b.res[num:]
+  popped := b.res[:num]
+  b.res = b.res[num:]
   return popped, nil
 }
 
@@ -102,12 +79,13 @@ func (b *Buffer) PopOne() (rsrc.Resource, error) {
   if len(b.res) < 1 {
     return nil, TooSmallErr
   }
-  popped, b.res := b.res[0], b.res[1:]
+  popped := b.res[0]
+  b.res = b.res[1:]
   return popped, nil
 }
 
 func (b *Buffer) PushOne(r rsrc.Resource) error {
-  if r.Qty() - b.Space() > rsrc.EPS && !b.unlimited {
+  if r.Qty() - b.Space() > rsrc.EPS {
     return OverCapErr
   }
   b.res = append(b.res, r)
@@ -119,7 +97,7 @@ func (b *Buffer) PushAll(rs []rsrc.Resource) error {
   for _, r := range rs {
     tot += r.Qty()
   }
-  if tot - b.Space() > rsrc.EPS && !b.unlimited {
+  if tot - b.Space() > rsrc.EPS {
     return OverCapErr
   }
   b.res = append(b.res, rs...)

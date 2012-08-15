@@ -1,6 +1,8 @@
 
 package engine
 
+import "time"
+
 type Ticker interface {
   Tick(time.Duration)
 }
@@ -25,39 +27,29 @@ type Engine struct {
   tickers []Ticker
   tockers []Tocker
   resolvers []Resolver
-  tm time.Time // current time.(in the simulaeon)
+  tm time.Time // current time (in the simulation)
 }
 
-func (e *Engine) init() {
-  if e.tickers == nil || e.tockers == nil || e.resolvers == nil {
-    e.tickers = []Ticker{}
-    e.tockers = []Tocker{}
-    e.resolvers = []Resolver{}
+func (e *Engine) RegisterTick(ts ...Ticker) {
+  e.tickers = append(e.tickers, ts...)
+}
+
+func (e *Engine) RegisterTock(ts ...Tocker) {
+  e.tockers = append(e.tockers, ts...)
+}
+
+func (e *Engine) RegisterTickTock(ts ...TickTocker) {
+  for _, t := range ts {
+    e.tickers = append(e.tickers, t.(Ticker))
+    e.tockers = append(e.tockers, t.(Tocker))
   }
 }
 
-func (e *Engine) RegisterTick(t Ticker) {
-  e.init()
-  e.tickers = append(e.tickers, t)
+func (e *Engine) RegisterResolve(rs ...Resolver) {
+  e.resolvers = append(e.resolvers, rs...)
 }
 
-func (e *Engine) RegisterTock(t Tocker) {
-  e.init()
-  e.tockers = append(e.tockers, t)
-}
-
-func (e *Engine) RegisterTickTocker(t TickTocker) {
-  e.init()
-  e.tickers = append(e.tickers, t)
-  e.tockers = append(e.tockers, t)
-}
-
-func (e *Engine) RegisterResolve(r Resolver) {
-  e.init()
-  e.resolvers = append(e.resolvers, r)
-}
-
-func (e *Engine) RunSim() {
+func (e *Engine) Run() {
   for tm := e.Start; !tm.After(e.Start.Add(e.Duration)); tm = tm.Add(e.Step) {
     for _, t := range e.tickers {
       t.Tick(e.Step)
@@ -76,6 +68,6 @@ func (e *Engine) Time() time.Time {
 }
 
 func (e *Engine) SinceStart() time.Duration {
-  return e.Sub(e.Start)
+  return e.tm.Sub(e.Start)
 }
 

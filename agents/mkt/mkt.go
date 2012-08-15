@@ -1,6 +1,6 @@
 
 package mkt
 
-type Market {
+type Mkt struct {
 
 }

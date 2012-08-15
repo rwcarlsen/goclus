@@ -1,21 +1,19 @@
 
 package books
 
-import "encoding/json"
-
-var BK := Books{}
-
-func RegisterTrans(t *Transaction) {
-  BK.RegisterTrans(t)
-}
+import (
+  "os"
+  "encoding/json"
+  "github.com/rwcarlsen/goclus/trans"
+)
 
 type Books struct {
-  Transes []*Transaction
+  Transes []*trans.Transaction
 }
 
-func (b *Books) RegisterTrans(t *Transaction) {
-  if b.Transes = nil {
-    b.Transes = []*Transaction{}
+func (b *Books) RegisterTrans(t *trans.Transaction) {
+  if b.Transes == nil {
+    b.Transes = []*trans.Transaction{}
   }
   b.Transes = append(b.Transes, t)
 }

@@ -1,14 +1,19 @@
 
 package sim
 
+import (
+  "github.com/rwcarlsen/goclus/msg"
+  "github.com/rwcarlsen/goclus/engine"
+)
+
 type Sim struct {
   Eng *engine.Engine
-  Mkts map[string]Communicator
+  Mkts map[string]msg.Communicator
 }
 
-func New(e *engine.Engine) *Sim {
+func New() *Sim {
   return &Sim{
-    Eng: e,
-    Mkts: map[string]Communicator{},
+    Eng: &engine.Engine{},
+    Mkts: map[string]msg.Communicator{},
   }
 }

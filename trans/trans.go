@@ -1,9 +1,12 @@
 
 package trans
 
-type TransType int
+import (
+  "errors"
+  "github.com/rwcarlsen/goclus/rsrc"
+)
 
-import "github.com/rwcarlsen/goclus/rsrc"
+type TransType int
 
 const (
   Offer TransType = iota
@@ -20,20 +23,20 @@ type Requester interface {
 
 type Transaction struct {
   Type TransType
-  res *Resource
+  res rsrc.Resource
   Sup Supplier
   Req Requester
   Manifest []rsrc.Resource
 }
 
-func NewOffer(sup Supplier) {
+func NewOffer(sup Supplier) *Transaction {
   return &Transaction{
     Type: Offer,
     Sup: sup,
   }
 }
 
-func NewRequest(req Requester) {
+func NewRequest(req Requester) *Transaction {
   return &Transaction{
     Type: Offer,
     Req: req,
@@ -52,6 +55,7 @@ func (t *Transaction) MatchWith(other *Transaction) error {
     t.Sup = other.Sup
     other.Req = t.Req
   }
+  return nil
 }
 
 func (t *Transaction) Approve() {
@@ -69,6 +73,6 @@ func (t *Transaction) SetResource(r rsrc.Resource) {
 
 func (t *Transaction) Clone() *Transaction {
   clone := *t
-  clone.Res = t.Res.Clone()
+  clone.res = t.res.Clone()
   return &clone
 }

@@ -3,9 +3,12 @@ package fac
 
 import (
   "time"
+  "math"
   "github.com/rwcarlsen/goclus/rsrc"
   "github.com/rwcarlsen/goclus/rsrc/buff"
+  "github.com/rwcarlsen/goclus/trans"
   "github.com/rwcarlsen/goclus/msg"
+  "github.com/rwcarlsen/goclus/sim"
 )
 
 type Fac struct {
@@ -27,17 +30,29 @@ type Fac struct {
   Sim *sim.Sim
 }
 
+func (f *Fac) Parent() msg.Communicator {
+  return nil
+}
+
+func (f *Fac) InSize(qty float64) error {
+  return f.inBuff.SetCapacity(qty)
+}
+
+func (f *Fac) OutSize(qty float64) error {
+  return f.outBuff.SetCapacity(qty)
+}
+
 func (f *Fac) Tick(tm time.Duration) {
   // make offers
   qty := f.outBuff.Qty()
   if qty > rsrc.EPS {
-    genMsg(f.OutCommod, qty, trans.Offer)
+    f.genMsg(f.OutCommod, qty, trans.Offer)
   }
 
   // make requests
-  qty := f.inBuff.Space()
+  qty = f.inBuff.Space()
   if qty > rsrc.EPS {
-    genMsg(f.InCommod, qty, trans.Request)
+    f.genMsg(f.InCommod, qty, trans.Request)
   }
 }
 
@@ -56,17 +71,14 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
 }
 
 func (f *Fac) Tock(tm time.Duration) {
-  approveOffers()
-  convertRes()
+  f.approveOffers()
+  f.convertRes()
 
   qty := math.Min(f.CreateRate, f.outBuff.Space())
-  createRes(qty)
+  f.createRes(qty)
 }
 
 func (f *Fac) approveOffers() {
-  if f.queuedOrders == nil {
-    f.queuedOrders = []Resource{}
-  }
   for _, m := range f.queuedOrders {
     m.Trans.Approve()
   }
@@ -83,7 +95,7 @@ func (f *Fac) createRes(qty float64) {
 
 func (f *Fac) convertRes() {
   qty := math.Min(f.ConvertAmt, f.outBuff.Space())
-  qty = math.Min(qty, f.inBuff.Quantity())
+  qty = math.Min(qty, f.inBuff.Qty())
 
   now := int64(f.Sim.Eng.SinceStart())
   rem := (now + int64(f.ConvertOffset)) % int64(f.ConvertPeriod)
@@ -93,19 +105,17 @@ func (f *Fac) convertRes() {
     return
   }
 
-  rs := f.inBuff.PopQty(qty)
+  rs, err := f.inBuff.PopQty(qty)
+  check(err)
   if f.InUnits == f.OutUnits {
     f.outBuff.PushAll(rs)
   } else {
-    createRes(qty)
+    f.createRes(qty)
   }
 }
 
 func (f *Fac) Receive(m *msg.Message) {
-  if f.queuedOrders == nil {
-    f.queuedOrders = []Resource{}
-  }
-  if msg.Sender == f {
+  if m.Sender == f {
     f.queuedOrders = append(f.queuedOrders, m)
   }
 }
@@ -116,13 +126,13 @@ func check(err error) {
   }
 }
 
-func (f *Fac) RemoveResource(tran *Transaction) {
+func (f *Fac) RemoveResource(tran *trans.Transaction) {
   rs, err := f.outBuff.PopQty(tran.Resource().Qty())
   check(err)
   tran.Manifest = rs
 }
 
-func (f *Fac) AddResource(tran *Transaction) {
+func (f *Fac) AddResource(tran *trans.Transaction) {
   err := f.inBuff.PushAll(tran.Manifest)
   check(err)
 }

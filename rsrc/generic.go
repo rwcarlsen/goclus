@@ -3,10 +3,10 @@ package rsrc
 
 type Generic struct {
   units string
-  qty int
+  qty float64
 }
 
-func NewGeneric(qty int, units string) *Generic {
+func NewGeneric(qty float64, units string) *Generic {
   return &Generic{
     units: units,
     qty: qty,

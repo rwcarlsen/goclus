@@ -1,6 +1,8 @@
 
 package comp
 
+import "errors"
+
 type Map map[int]float64
 
 func cloneMap(m Map) Map {
@@ -30,7 +32,7 @@ func (c *Composition) Clone() *Composition {
 // A negative ratio implies subtracting/removal of other from the composition.
 func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, error) {
   if ratio == 0 {
-    return other
+    return other, nil
   }
 
   mixed := c.Clone()
