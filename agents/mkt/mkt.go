@@ -26,13 +26,17 @@ func (m *Mkt) Receive(mg *msg.Message) {
   }
 }
 
-func (m *Mkt) Resolve(tm *time.Duration) {
+func (m *Mkt) Parent() msg.Communicator {
+  return nil
+}
+
+func (m *Mkt) Resolve(tm time.Duration) {
   if m.Shuffle {
     shuffle(m.offers)
     shuffle(m.requests)
   }
 
-  for len(m.requests) + len(m.offers) > 0 {
+  for len(m.requests) > 0 && len(m.offers) > 0 {
     mg := m.requests[0]
     qty := mg.Trans.Resource().Qty()
     matched := m.extractQty(&m.offers, qty)
@@ -46,7 +50,10 @@ func (m *Mkt) Resolve(tm *time.Duration) {
 
 func (m *Mkt) matchAll(group Group, mg *msg.Message) {
   for _, gpMem := range group {
-    gpMem.Trans.MatchWith(mg.Trans)
+    err := gpMem.Trans.MatchWith(mg.Trans)
+    if err != nil {
+      panic(err.Error())
+    }
     gpMem.Dir = msg.Down
     gpMem.SendOn()
   }
@@ -60,7 +67,8 @@ func (m *Mkt) extractQty(group *Group, qty float64) Group {
     currQty := currMsg.Trans.Resource().Qty()
     if currQty <= unmet + rsrc.EPS {
       extracted = append(extracted, currMsg)
-      group = &((*group)[1:])
+      tmp := (*group)[1:]
+      group = &tmp
       unmet -= currQty
     } else {
       split := m.extractFromMsg(currMsg, unmet)

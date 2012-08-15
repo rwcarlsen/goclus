@@ -25,6 +25,7 @@ func config(simul *sim.Sim) {
   milk := "milk"
   cheese := "cheese"
   src := &fac.Fac{
+    Name: "src",
     OutCommod: milk,
     OutUnits: milk,
     CreateRate: rsrc.INFINITY,
@@ -33,6 +34,7 @@ func config(simul *sim.Sim) {
   src.OutSize(5)
 
   null := &fac.Fac{
+    Name: "null",
     InCommod: milk,
     InUnits: milk,
     OutCommod: cheese,
@@ -46,6 +48,7 @@ func config(simul *sim.Sim) {
   null.OutSize(5)
 
   null2 := &fac.Fac{
+    Name: "null2",
     InCommod: cheese,
     InUnits: cheese,
     OutCommod: milk,
@@ -59,6 +62,7 @@ func config(simul *sim.Sim) {
   null2.OutSize(3)
 
   snk := &fac.Fac{
+    Name: "snk",
     InCommod: cheese,
     InUnits: cheese,
     Sim: simul,

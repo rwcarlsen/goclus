@@ -38,14 +38,14 @@ func NewOffer(sup Supplier) *Transaction {
 
 func NewRequest(req Requester) *Transaction {
   return &Transaction{
-    Type: Offer,
+    Type: Request,
     Req: req,
   }
 }
 
 func (t *Transaction) MatchWith(other *Transaction) error {
-  if t.Type != other.Type {
-    return errors.New("trans: Incompatible transaction types")
+  if t.Type == other.Type {
+    return errors.New("trans: Non-complementary transaction types")
   }
 
   if t.Type == Offer {

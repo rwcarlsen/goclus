@@ -2,6 +2,7 @@
 package fac
 
 import (
+  "fmt"
   "time"
   "math"
   "github.com/rwcarlsen/goclus/rsrc"
@@ -12,6 +13,7 @@ import (
 )
 
 type Fac struct {
+  Name string
   queuedOrders []*msg.Message
 
   InCommod string
@@ -30,19 +32,33 @@ type Fac struct {
   Sim *sim.Sim
 }
 
+func (f *Fac) init() {
+  if f.inBuff == nil {
+    f.inBuff = &buff.Buffer{}
+    f.outBuff = &buff.Buffer{}
+  }
+  if f.ConvertPeriod == 0 {
+    f.ConvertPeriod = f.Sim.Eng.Step
+  }
+}
+
 func (f *Fac) Parent() msg.Communicator {
   return nil
 }
 
 func (f *Fac) InSize(qty float64) error {
+  f.init()
   return f.inBuff.SetCapacity(qty)
 }
 
 func (f *Fac) OutSize(qty float64) error {
+  f.init()
   return f.outBuff.SetCapacity(qty)
 }
 
 func (f *Fac) Tick(tm time.Duration) {
+  fmt.Println("Ticking")
+  f.init()
   // make offers
   qty := f.outBuff.Qty()
   if qty > rsrc.EPS {
@@ -58,11 +74,13 @@ func (f *Fac) Tick(tm time.Duration) {
 
 func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
   units := f.InUnits
+  tran := trans.NewRequest(f)
   if t == trans.Offer {
+    tran = trans.NewOffer(f)
     units = f.OutUnits
   }
+
   r := rsrc.NewGeneric(qty, units)
-  tran := trans.NewRequest(f)
   tran.SetResource(r)
 
   m := msg.New(f, f.Sim.Mkts[commod])
@@ -71,6 +89,7 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
 }
 
 func (f *Fac) Tock(tm time.Duration) {
+  f.init()
   f.approveOffers()
   f.convertRes()
 
@@ -120,19 +139,24 @@ func (f *Fac) Receive(m *msg.Message) {
   }
 }
 
-func check(err error) {
-  if err != nil {
-    panic(err.Error())
-  }
-}
-
 func (f *Fac) RemoveResource(tran *trans.Transaction) {
+  fmt.Println(f.Name, " sending stuff")
+  f.init()
   rs, err := f.outBuff.PopQty(tran.Resource().Qty())
   check(err)
   tran.Manifest = rs
 }
 
 func (f *Fac) AddResource(tran *trans.Transaction) {
+  fmt.Println(f.Name, " getting stuff: ", tran.Manifest)
+  f.init()
   err := f.inBuff.PushAll(tran.Manifest)
   check(err)
 }
+
+func check(err error) {
+  if err != nil {
+    panic(err.Error())
+  }
+}
+

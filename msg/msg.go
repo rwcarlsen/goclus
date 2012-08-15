@@ -30,6 +30,7 @@ type Message struct {
 
 func New(sender, receiver Communicator) *Message {
   return &Message{
+    Dir: Up,
     Sender: sender,
     Receiver: receiver,
     owner: sender,

@@ -45,7 +45,7 @@ func (b *Buffer) Space() float64 {
 }
 
 func (b *Buffer) PopQty(qty float64) ([]rsrc.Resource, error) {
-  if qty - b.Qty() > rsrc.EPS || qty < rsrc.EPS{
+  if qty - b.Qty() > rsrc.EPS || qty < rsrc.EPS {
     return nil, TooSmallErr
   }
 
@@ -62,6 +62,7 @@ func (b *Buffer) PopQty(qty float64) ([]rsrc.Resource, error) {
       b.res = append([]rsrc.Resource{leftover}, b.res...)
     }
     popped = append(popped, r)
+    left -= quan
   }
   return popped, nil
 }
