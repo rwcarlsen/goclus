@@ -1,6 +1,8 @@
 
 package mat
 
+import "github.com/rwcarlsen/goclus/comp"
+
 type Material struct {
   comp *Composition
   mass float64
@@ -60,17 +62,5 @@ func (m *Material) Absorb(other *Material) {
   }
   m.comp := MixedComp(m.mass / other.mass, m.comp, other.comp)
   m.mass += other.mass
-}
-
-type Composition struct {
-
-}
-
-// Mix adjusts the composition by combining it with other where ratio is qty of
-// the comp divided by the qty of other.
-//
-// Negative ratios imply subtracting/removal.
-func (c *Composition) Mix(ratio float64, other *Composition) {
-  
 }
 

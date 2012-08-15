@@ -46,6 +46,12 @@ func (e *Engine) RegisterTock(t Tocker) {
   e.tockers = append(e.tockers, t)
 }
 
+func (e *Engine) RegisterTickTocker(t TickTocker) {
+  e.init()
+  e.tickers = append(e.tickers, t)
+  e.tockers = append(e.tockers, t)
+}
+
 func (e *Engine) RegisterResolve(r Resolver) {
   e.init()
   e.resolvers = append(e.resolvers, r)

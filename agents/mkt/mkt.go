@@ -1,0 +1,6 @@
+
+package mkt
+
+type Market {
+
+}
