@@ -1,6 +1,8 @@
 
 package rsrc
 
+const EPS = 1e-6
+
 type Resource interface {
   Type() string
   Units() string

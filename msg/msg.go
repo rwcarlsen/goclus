@@ -12,16 +12,6 @@ const (
   Down
 )
 
-type Index map[string]Communicator
-
-func (ind *Index) Register(name string, who Communicator) {
-  ind[name] = who
-}
-
-func (ind *Index) Get(name string) Communicator {
-  return ind[name]
-}
-
 type Communicator interface {
   Receive(*Message)
   Parent() Communicator
