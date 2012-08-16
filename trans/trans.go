@@ -13,6 +13,8 @@ const (
   Request
 )
 
+var ToOutput chan *Transaction
+
 type Supplier interface {
   RemoveResource(*Transaction)
 }
@@ -61,6 +63,9 @@ func (t *Transaction) MatchWith(other *Transaction) error {
 func (t *Transaction) Approve() {
   t.Sup.RemoveResource(t)
   t.Req.AddResource(t)
+  if ToOutput != nil {
+    ToOutput<-t
+  }
 }
 
 func (t *Transaction) Resource() rsrc.Resource {

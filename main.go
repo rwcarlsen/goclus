@@ -2,9 +2,13 @@
 package main
 
 import (
+  "fmt"
   "time"
   "github.com/rwcarlsen/goclus/sim"
   "github.com/rwcarlsen/goclus/rsrc"
+  "github.com/rwcarlsen/goclus/books"
+  "github.com/rwcarlsen/goclus/trans"
+  "github.com/rwcarlsen/goclus/msg"
   "github.com/rwcarlsen/goclus/agents/fac"
   "github.com/rwcarlsen/goclus/agents/mkt"
 )
@@ -13,12 +17,25 @@ func main() {
   simul := sim.New()
   config(simul)
 
+  transCh := make(chan *trans.Transaction)
+  commCh := make(chan msg.Communicator)
+  trans.ToOutput = transCh
+  msg.ToOutput = commCh
+
+  b := books.Books{}
+  b.Collect(transCh, commCh)
+
   var month time.Duration = 43829 * time.Minute
   simul.Eng.Duration = 36 * month
   simul.Eng.Start = time.Now()
   simul.Eng.Step = month
 
   simul.Eng.Run()
+  b.Close()
+  err := b.Dump()
+  if err != nil {
+    fmt.Println(err)
+  }
 }
 
 func config(simul *sim.Sim) {

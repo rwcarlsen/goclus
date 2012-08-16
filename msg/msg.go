@@ -5,6 +5,8 @@ import (
   "github.com/rwcarlsen/goclus/trans"
 )
 
+var ToOutput chan Communicator
+
 type MsgDir int
 
 const (
@@ -58,8 +60,12 @@ func (m *Message) SendOn() {
   }
 
   next := m.pathStack[len(m.pathStack)-1]
-  m.owner = next
+  if ToOutput != nil {
+    ToOutput<-m.owner
+    ToOutput<-next
+  }
 
+  m.owner = next
   m.hasDest = false
   next.Receive(m)
 }
