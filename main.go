@@ -67,15 +67,10 @@ func config(simul *sim.Sim) {
     InUnits: cheese,
     Sim: simul,
   }
-  snk.OutSize(rsrc.INFINITY)
+  snk.InSize(rsrc.INFINITY)
 
-  milkMkt := &mkt.Mkt{
-    Shuffle: true,
-  }
-
-  cheeseMkt := &mkt.Mkt{
-    Shuffle: true,
-  }
+  milkMkt := &mkt.Mkt{Shuffle: true}
+  cheeseMkt := &mkt.Mkt{Shuffle: true}
 
   simul.Eng.RegisterTickTock(src, snk, null, null2)
   simul.Eng.RegisterResolve(milkMkt, cheeseMkt)

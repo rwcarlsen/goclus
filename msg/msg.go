@@ -12,6 +12,8 @@ const (
   Down
 )
 
+type Group []*Message
+
 type Communicator interface {
   Receive(*Message)
   Parent() Communicator
@@ -90,9 +92,9 @@ func (m *Message) validateForSend() {
   }
 
   if !hasDest {
-    panic("No Message Receiver")
+    panic("msg: No Message Receiver")
   } else if next := m.pathStack[i]; next == m.owner {
-    panic("Circular message send attempt")
+    panic("msg: Circular message send attempt")
   }
 }
 

@@ -2,6 +2,7 @@
 package engine
 
 import "time"
+import "fmt"
 
 type Ticker interface {
   Tick(time.Duration)
@@ -50,15 +51,21 @@ func (e *Engine) RegisterResolve(rs ...Resolver) {
 }
 
 func (e *Engine) Run() {
-  for tm := e.Start; !tm.After(e.Start.Add(e.Duration)); tm = tm.Add(e.Step) {
+  fmt.Println("start-time: ", e.Start)
+  end := e.Start.Add(e.Duration)
+  for tm := e.Start; tm.Before(end); tm = tm.Add(e.Step) {
+    fmt.Println("timestep: ", tm)
+    fmt.Println("ticking...")
     for _, t := range e.tickers {
       t.Tick(e.Step)
     }
-    for _, t := range e.tockers {
-      t.Tock(e.Step)
-    }
+    fmt.Println("resolving...")
     for _, r := range e.resolvers {
       r.Resolve(e.Step)
+    }
+    fmt.Println("tocking...")
+    for _, t := range e.tockers {
+      t.Tock(e.Step)
     }
   }
 }

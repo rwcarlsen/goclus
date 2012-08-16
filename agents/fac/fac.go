@@ -57,7 +57,6 @@ func (f *Fac) OutSize(qty float64) error {
 }
 
 func (f *Fac) Tick(tm time.Duration) {
-  fmt.Println("Ticking")
   f.init()
   // make offers
   qty := f.outBuff.Qty()
@@ -76,10 +75,9 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
   units := f.InUnits
   tran := trans.NewRequest(f)
   if t == trans.Offer {
-    tran = trans.NewOffer(f)
     units = f.OutUnits
+    tran = trans.NewOffer(f)
   }
-
   r := rsrc.NewGeneric(qty, units)
   tran.SetResource(r)
 
@@ -101,7 +99,7 @@ func (f *Fac) approveOffers() {
   for _, m := range f.queuedOrders {
     m.Trans.Approve()
   }
-  f.queuedOrders = []*msg.Message{}
+  f.queuedOrders = msg.Group{}
 }
 
 func (f *Fac) createRes(qty float64) {
@@ -140,7 +138,7 @@ func (f *Fac) Receive(m *msg.Message) {
 }
 
 func (f *Fac) RemoveResource(tran *trans.Transaction) {
-  fmt.Println(f.Name, " sending stuff")
+  fmt.Println(f.Name, " sending qty=", tran.Resource().Qty(), "of", f.OutCommod)
   f.init()
   rs, err := f.outBuff.PopQty(tran.Resource().Qty())
   check(err)
@@ -148,7 +146,7 @@ func (f *Fac) RemoveResource(tran *trans.Transaction) {
 }
 
 func (f *Fac) AddResource(tran *trans.Transaction) {
-  fmt.Println(f.Name, " getting stuff: ", tran.Manifest)
+  fmt.Println(f.Name, " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
   f.init()
   err := f.inBuff.PushAll(tran.Manifest)
   check(err)
