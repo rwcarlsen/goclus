@@ -22,6 +22,7 @@ type AgentInfo struct {
   ImportPath string
   Id string
   ParentId string
+  Config string
 }
 
 type SimInput struct {
@@ -54,6 +55,12 @@ func LoadSim(fname string) (*sim.Engine, error) {
     a := reflect.New(agentLib[info.ImportPath]).Interface()
     agentmap[info.Id] = a
     agents = append(agents, a)
+
+    // configure the agent according to input
+    err := json.Unmarshal([]byte(info.Config), a)
+    if err != nil {
+      return nil, err
+    }
   }
 
   // set parents
