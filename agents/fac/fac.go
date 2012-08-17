@@ -18,10 +18,12 @@ type Fac struct {
 
   InCommod string
   InUnits string
+  InSize float64
   inBuff *buff.Buffer
 
   OutCommod string
   OutUnits string
+  OutSize float64
   outBuff *buff.Buffer
 
   CreateRate float64
@@ -34,7 +36,9 @@ type Fac struct {
 func (f *Fac) init() {
   if f.inBuff == nil {
     f.inBuff = &buff.Buffer{}
+    f.inBuff.SetCapacity(f.InSize)
     f.outBuff = &buff.Buffer{}
+    f.outBuff.SetCapacity(f.OutSize)
   }
 }
 
@@ -43,16 +47,6 @@ func (f *Fac) Parent() msg.Communicator {
 }
 
 func (f *Fac) SetParent(par msg.Communicator) {
-}
-
-func (f *Fac) InSize(qty float64) error {
-  f.init()
-  return f.inBuff.SetCapacity(qty)
-}
-
-func (f *Fac) OutSize(qty float64) error {
-  f.init()
-  return f.outBuff.SetCapacity(qty)
 }
 
 func (f *Fac) Tick(eng *sim.Engine) {

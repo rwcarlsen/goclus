@@ -28,7 +28,7 @@ func (m *Mkt) Parent() msg.Communicator {
   return nil
 }
 
-func (f *Fac) SetParent(par msg.Communicator) {
+func (f *Mkt) SetParent(par msg.Communicator) {
 }
 
 func (m *Mkt) Resolve(eng *sim.Engine) {

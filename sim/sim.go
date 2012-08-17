@@ -27,7 +27,6 @@ type Resolver interface {
 
 type Engine struct {
   Duration time.Duration
-  Start time.Time
   Step time.Duration
   comms map[string]msg.Communicator
   tickers []Ticker
@@ -73,9 +72,9 @@ func (e *Engine) RegisterResolve(rs ...Resolver) {
 }
 
 func (e *Engine) Run() {
-  fmt.Println("start-time: ", e.Start)
-  end := e.Start.Add(e.Duration)
-  for tm := e.Start; tm.Before(end); tm = tm.Add(e.Step) {
+  start := time.Time{}
+  end := start.Add(e.Duration)
+  for tm := start; tm.Before(end); tm = tm.Add(e.Step) {
     fmt.Println("timestep: ", tm)
     fmt.Println("ticking...")
     for _, t := range e.tickers {
@@ -97,6 +96,6 @@ func (e *Engine) Time() time.Time {
 }
 
 func (e *Engine) SinceStart() time.Duration {
-  return e.tm.Sub(e.Start)
+  return e.tm.Sub(time.Time{})
 }
 

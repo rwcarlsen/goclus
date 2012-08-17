@@ -9,15 +9,19 @@ import (
   "github.com/rwcarlsen/goclus/books"
   "github.com/rwcarlsen/goclus/trans"
   "github.com/rwcarlsen/goclus/msg"
+
+  "github.com/rwcarlsen/goclus/loader"
   "github.com/rwcarlsen/goclus/agents/fac"
   "github.com/rwcarlsen/goclus/agents/mkt"
 )
 
 func main() {
+  loadertest()
+  return
+
   var month time.Duration = 43829 * time.Minute
   eng := &sim.Engine{
     Duration: 36 * month,
-    Start: time.Now(),
     Step: month,
   }
   config(eng)
@@ -42,6 +46,18 @@ func main() {
   }
 }
 
+func loadertest() {
+  loader.Register(fac.Fac{})
+  loader.Register(mkt.Mkt{})
+
+  eng, err := loader.LoadSim("input.json")
+  if err != nil {
+    fmt.Println(err)
+  } else {
+    fmt.Println(eng)
+  }
+}
+
 func config(eng *sim.Engine) {
   milk := "milk"
   cheese := "cheese"
@@ -49,42 +65,42 @@ func config(eng *sim.Engine) {
     Name: "src",
     OutCommod: milk,
     OutUnits: milk,
+    OutSize: 5,
     CreateRate: rsrc.INFINITY,
   }
-  src.OutSize(5)
 
   null := &fac.Fac{
     Name: "null",
     InCommod: milk,
     InUnits: milk,
+    InSize: 5,
     OutCommod: cheese,
     OutUnits: cheese,
+    OutSize: 5,
     ConvertAmt: 5,
     ConvertPeriod: 1,
     ConvertOffset: 0,
   }
-  null.InSize(5)
-  null.OutSize(5)
 
   null2 := &fac.Fac{
     Name: "null2",
     InCommod: cheese,
     InUnits: cheese,
+    InSize: 5,
     OutCommod: milk,
     OutUnits: milk,
+    OutSize: 3,
     ConvertAmt: 5,
     ConvertPeriod: 1,
     ConvertOffset: 0,
   }
-  null2.InSize(5)
-  null2.OutSize(3)
 
   snk := &fac.Fac{
     Name: "snk",
     InCommod: cheese,
     InUnits: cheese,
+    InSize: rsrc.INFINITY,
   }
-  snk.InSize(rsrc.INFINITY)
 
   milkMkt := &mkt.Mkt{Shuffle: true}
   cheeseMkt := &mkt.Mkt{Shuffle: true}
