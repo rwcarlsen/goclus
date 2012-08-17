@@ -2,11 +2,11 @@
 package mkt
 
 import (
-  "time"
   "math/rand"
   "github.com/rwcarlsen/goclus/msg"
   "github.com/rwcarlsen/goclus/rsrc"
   "github.com/rwcarlsen/goclus/trans"
+  "github.com/rwcarlsen/goclus/sim"
 )
 
 type Mkt struct {
@@ -28,7 +28,7 @@ func (m *Mkt) Parent() msg.Communicator {
   return nil
 }
 
-func (m *Mkt) Resolve(tm time.Duration) {
+func (m *Mkt) Resolve(eng *sim.Engine) {
   if m.Shuffle {
     shuffle(m.offers)
     shuffle(m.requests)

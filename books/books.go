@@ -6,12 +6,10 @@ import (
   "time"
   "encoding/json"
   "reflect"
-  "github.com/rwcarlsen/goclus/trans"
-  "github.com/rwcarlsen/goclus/engine"
   "github.com/rwcarlsen/goclus/msg"
+  "github.com/rwcarlsen/goclus/trans"
+  "github.com/rwcarlsen/goclus/sim"
 )
-
-var Eng *engine.Engine
 
 type TransData struct {
   Id int
@@ -32,9 +30,14 @@ type AgentData struct {
 
 type Books struct {
   aId int
+  done chan bool
+  TransIn chan *trans.Transaction
+  MsgIn chan *msg.Message
+  MiscIn chan interface{}
   TranDat []*TransData
   AgentDat map[interface{}]*AgentData
-  done chan bool
+  MiscDat []interface{}
+  Eng *sim.Engine
 }
 
 func (b *Books) Close() {
@@ -43,15 +46,18 @@ func (b *Books) Close() {
 
 // Collect dispatches a goroutine that records data fed into transIn and commIn
 // terminating when the Close method is called.
-func (b *Books) Collect(transIn chan *trans.Transaction, commIn chan msg.Communicator) {
+func (b *Books) Collect() {
   b.done = make(chan bool)
   go func() {
     for {
       select {
-        case t := <-transIn:
+        case t := <-b.TransIn:
           b.regTrans(t)
-        case c := <-commIn:
-          b.regComm(c)
+        case m := <-b.MsgIn:
+          b.regComm(m.PrevOwner)
+          b.regComm(m.Owner)
+        case i := <-b.MiscIn:
+          b.MiscDat = append(b.MiscDat, i)
         case <-b.done:
           return
       }
@@ -112,7 +118,7 @@ func (b *Books) regAgent(a interface{}) {
   b.AgentDat[a] = &AgentData{
     Id: b.aId,
     Type: tp.PkgPath() + "." + tp.Name(),
-    Born: getTime(),
+    Born: b.getTime(),
     ParentId: -1,
   }
 }
@@ -133,6 +139,13 @@ func (b *Books) Dump() error {
   return nil
 }
 
+func (b *Books) getTime() time.Time {
+  if b.Eng != nil {
+    return b.Eng.Time()
+  }
+  return time.Time{}
+}
+
 func dump(name string, v interface{}) error {
   data, err := json.MarshalIndent(v, "", "\t")
   if err != nil {
@@ -147,12 +160,5 @@ func dump(name string, v interface{}) error {
 
   f.Write(data)
   return nil
-}
-
-func getTime() time.Time {
-  if Eng != nil {
-    return Eng.Time()
-  }
-  return time.Time{}
 }
 

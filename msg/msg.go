@@ -5,7 +5,7 @@ import (
   "github.com/rwcarlsen/goclus/trans"
 )
 
-var ToOutput chan Communicator
+var ToOutput chan *Message
 
 type MsgDir int
 
@@ -27,7 +27,8 @@ type Message struct {
   Sender Communicator
   Receiver Communicator
   Notes string
-  owner Communicator
+  PrevOwner Communicator
+  Owner Communicator
   pathStack []Communicator
   hasDest bool
 }
@@ -37,7 +38,7 @@ func New(sender, receiver Communicator) *Message {
     Dir: Up,
     Sender: sender,
     Receiver: receiver,
-    owner: sender,
+    Owner: sender,
     pathStack: []Communicator{sender},
   }
 }
@@ -60,12 +61,12 @@ func (m *Message) SendOn() {
   }
 
   next := m.pathStack[len(m.pathStack)-1]
+  m.PrevOwner, m.Owner = m.Owner, next
+
   if ToOutput != nil {
-    ToOutput<-m.owner
-    ToOutput<-next
+    ToOutput<-m
   }
 
-  m.owner = next
   m.hasDest = false
   next.Receive(m)
 }
@@ -79,7 +80,7 @@ func (m *Message) SetDest(dest Communicator) {
 }
 
 func (m *Message) autoSetDest() {
-  next := m.owner.Parent()
+  next := m.Owner.Parent()
   if next == nil {
     next = m.Receiver
   }
@@ -99,7 +100,7 @@ func (m *Message) validateForSend() {
 
   if !hasDest {
     panic("msg: No Message Receiver")
-  } else if next := m.pathStack[i]; next == m.owner {
+  } else if next := m.pathStack[i]; next == m.Owner {
     panic("msg: Circular message send attempt")
   }
 }

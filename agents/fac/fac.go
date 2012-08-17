@@ -28,17 +28,13 @@ type Fac struct {
   ConvertAmt float64
   ConvertPeriod time.Duration
   ConvertOffset time.Duration
-
-  Sim *sim.Sim
+  eng *sim.Engine
 }
 
 func (f *Fac) init() {
   if f.inBuff == nil {
     f.inBuff = &buff.Buffer{}
     f.outBuff = &buff.Buffer{}
-  }
-  if f.ConvertPeriod == 0 {
-    f.ConvertPeriod = f.Sim.Eng.Step
   }
 }
 
@@ -56,8 +52,10 @@ func (f *Fac) OutSize(qty float64) error {
   return f.outBuff.SetCapacity(qty)
 }
 
-func (f *Fac) Tick(tm time.Duration) {
+func (f *Fac) Tick(eng *sim.Engine) {
   f.init()
+  f.eng = eng
+
   // make offers
   qty := f.outBuff.Qty()
   if qty > rsrc.EPS {
@@ -81,13 +79,19 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
   r := rsrc.NewGeneric(qty, units)
   tran.SetResource(r)
 
-  m := msg.New(f, f.Sim.Mkts[commod])
+  mkt, _ := f.eng.GetComm(commod)
+  m := msg.New(f, mkt)
   m.Trans = tran
   m.SendOn()
 }
 
-func (f *Fac) Tock(tm time.Duration) {
+func (f *Fac) Tock(eng *sim.Engine) {
   f.init()
+  f.eng = eng
+  if f.ConvertPeriod == 0 {
+    f.ConvertPeriod = eng.Step
+  }
+
   f.approveOffers()
   f.convertRes()
 
@@ -114,7 +118,7 @@ func (f *Fac) convertRes() {
   qty := math.Min(f.ConvertAmt, f.outBuff.Space())
   qty = math.Min(qty, f.inBuff.Qty())
 
-  now := int64(f.Sim.Eng.SinceStart())
+  now := int64(f.eng.SinceStart())
   rem := (now + int64(f.ConvertOffset)) % int64(f.ConvertPeriod)
   if qty <= rsrc.EPS {
     return
