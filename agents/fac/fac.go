@@ -42,6 +42,9 @@ func (f *Fac) Parent() msg.Communicator {
   return nil
 }
 
+func (f *Fac) SetParent(par msg.Communicator) {
+}
+
 func (f *Fac) InSize(qty float64) error {
   f.init()
   return f.inBuff.SetCapacity(qty)

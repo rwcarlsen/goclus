@@ -19,6 +19,7 @@ type Group []*Message
 type Communicator interface {
   Receive(*Message)
   Parent() Communicator
+  SetParent(Communicator)
 }
 
 type Message struct {
