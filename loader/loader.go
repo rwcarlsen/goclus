@@ -63,14 +63,17 @@ func LoadSim(fname string) (*sim.Engine, error) {
   // create prototypes
   protos := map[string]interface{}{}
   for _, info := range input.Prototypes {
-    p := reflect.Indirect(reflect.New(agentLib[info.ImportPath])).Interface()
-    protos[info.Id] = p
+    p := reflect.New(agentLib[info.ImportPath]).Interface()
 
     // configure the agent according to input
-    err := json.Unmarshal([]byte(info.Config), p)
+    data := []byte(info.Config)
+    err := json.Unmarshal(data, p)
     if err != nil {
       return nil, prettyParseError(info.Config, err)
     }
+
+    fmt.Println("method count: ", reflect.TypeOf(p).NumMethod())
+    protos[info.Id] = reflect.Indirect(reflect.ValueOf(p)).Interface()
   }
 
   // create agents from prototypes
@@ -83,9 +86,18 @@ func LoadSim(fname string) (*sim.Engine, error) {
 
   // set parents
   for i, info := range input.Agents {
-    ac := agents[i].(msg.Communicator)
-    if par, ok := agentMap[info.ParentId]; ok {
-      ac.SetParent(par.(msg.Communicator))
+    tp := reflect.TypeOf(agents[i])
+    fmt.Println("all methods of:", tp.Method(0))
+    for i := 0; i < tp.NumMethod(); i++ {
+      fmt.Println(tp.Method(i))
+    }
+
+    if setParent, ok := tp.MethodByName("SetParent"); ok {
+      if par, ok := agentMap[info.ParentId]; ok {
+        setParent.Func.Call([]reflect.Value{reflect.ValueOf(par)})
+      }
+    } else {
+      return nil, errors.New("loader: non-communicator cannot have parent")
     }
   }
 
