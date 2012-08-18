@@ -73,8 +73,8 @@ func (e *Engine) RegisterTock(ts ...Tocker) {
 
 func (e *Engine) RegisterTickTock(ts ...TickTocker) {
   for _, t := range ts {
-    e.tickers = append(e.tickers, t.(Ticker))
-    e.tockers = append(e.tockers, t.(Tocker))
+    e.RegisterTick(t)
+    e.RegisterTock(t)
   }
 }
 
