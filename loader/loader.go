@@ -33,6 +33,7 @@ type AgentInfo struct {
   Id string
   ProtoId string
   ParentId string
+  IndexId string
 }
 
 type SimInput struct {
@@ -59,6 +60,9 @@ func LoadSim(fname string) (*sim.Engine, error) {
     return nil, prettyParseError(string(data), err)
   }
 
+  // get the engine
+  eng := input.Engine
+
   // create agents from prototypes
   agents := []interface{}{}
   agentMap := map[string]interface{}{}
@@ -72,7 +76,14 @@ func LoadSim(fname string) (*sim.Engine, error) {
       fmt.Println(field, val, " ----------------------")
       field.Set(val)
     }
-    agents = append(agents, av.Interface())
+    a := av.Interface()
+    agents = append(agents, a)
+    if info.IndexId != "" {
+      err := eng.RegisterComm(info.IndexId, a.(msg.Communicator))
+      if err != nil {
+        panic(err.Error())
+      }
+    }
     fmt.Println(agents[len(agents)-1])
   }
 
@@ -88,9 +99,6 @@ func LoadSim(fname string) (*sim.Engine, error) {
     }
   }
 
-  // get the engine
-  eng := input.Engine
-
   // register for ticks, tocks, and resolves
   for _, a := range agents {
     switch t := a.(type) {
@@ -104,7 +112,6 @@ func LoadSim(fname string) (*sim.Engine, error) {
     switch t := a.(type) {
       case sim.Resolver:
         eng.RegisterResolve(t)
-        eng.RegisterComm("name", t)
     }
   }
 

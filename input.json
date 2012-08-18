@@ -5,34 +5,47 @@
               "Step":2629740000000000
             },
   "Prototypes":{
-             "src":{
-               "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
-               "Config":{"Name":"src","OutCommod":"milk","OutUnits": "gal milk","OutSize":5,"CreateRate":5}
-             },
-             "snk":{
-               "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
-               "Config":{"Name":"snk","InCommod":"milk","InUnits": "gal milk","InSize":5}
-             },
-             "milk market":{
-               "ImportPath":"github.com/rwcarlsen/goclus/agents/mkt.Mkt",
-               "Config":{"Shuffle":true}
-             }
-           },
+      "src":{
+        "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
+        "Config":{
+          "Name":"src",
+          "OutCommod":"milk",
+          "OutUnits": "gal milk",
+          "OutSize":5,"CreateRate":5
+        }
+      },
+      "snk":{
+        "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
+        "Config":{
+          "Name":"snk",
+          "InCommod":"milk",
+          "InUnits": "gal milk",
+          "InSize":1e6
+        }
+      },
+      "milk market":{
+        "ImportPath":"github.com/rwcarlsen/goclus/agents/mkt.Mkt",
+        "Config":{
+          "Shuffle":true
+        }
+      }
+    },
   "Agents":[
-             {
-               "Id":"src1",
-               "ProtoId":"src",
-               "ParentId":"0"
-             },
-             {
-               "Id":"snk1",
-               "ProtoId":"snk",
-               "ParentId":"0"
-             },
-             {
-               "Id":"milk market1",
-               "ProtoId":"milk market",
-               "ParentId":"0"
-             }
-           ]
+    {
+      "Id":"src1",
+      "ProtoId":"src",
+      "ParentId":"0"
+    },
+    {
+      "Id":"snk1",
+      "ProtoId":"snk",
+      "ParentId":"0"
+    },
+    {
+      "IndexId":"milk",
+      "Id":"milk market1",
+      "ProtoId":"milk market",
+      "ParentId":"0"
+    }
+  ]
 }

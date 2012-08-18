@@ -35,11 +35,16 @@ type Engine struct {
   tm time.Time // current time (in the simulation)
 }
 
-func (e *Engine) RegisterComm(name string, c msg.Communicator) {
+func (e *Engine) RegisterComm(name string, c msg.Communicator) error {
   if e.comms == nil {
     e.comms = map[string]msg.Communicator{}
   }
+
+  if _, ok := e.comms[name]; ok {
+    return errors.New("sim: duplicate name registration '" + name + "'")
+  }
   e.comms[name] = c
+  return nil
 }
 
 func (e *Engine) GetComm(name string) (msg.Communicator, error) {
