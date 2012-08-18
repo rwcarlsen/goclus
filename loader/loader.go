@@ -101,8 +101,10 @@ func (l *Loader) LoadSim(fname string) error {
   // configure prototypes
   for id, p := range l.protos {
     data, _ := json.Marshal(l.Prototypes[id].Config)
-    json.Unmarshal(data, p)
-    fmt.Println("prototype: ", p)
+    err := json.Unmarshal(data, p)
+    if err != nil {
+      return prettyMarshalErr(id, data, err)
+    }
   }
 
   // create agents from prototypes
@@ -118,7 +120,6 @@ func (l *Loader) LoadSim(fname string) error {
         panic("loader: " + err.Error())
       }
     }
-    fmt.Println(agents[len(agents)-1])
   }
 
   for i, info := range l.Agents {
@@ -144,14 +145,13 @@ func prettyParseError(js string, err error) error {
   if !ok {
     return err
   }
-
-  //start, end := strings.LastIndex(js[:syntax.Offset], "\n")+1, len(js)
   start, _ := strings.LastIndex(js[:syntax.Offset], "\n")+1, len(js)
-  //if idx := strings.Index(js[start:], "\n"); idx >= 0 {
-  //  end = start + idx
-  //}
   line, pos := strings.Count(js[:start], "\n"), int(syntax.Offset) - start - 1
   msg := fmt.Sprint("loader: ", err, " at line ", line + 1, " pos ", pos)
   return errors.New(msg)
-  //fmt.Printf("%s\n%s^", js[start:end], strings.Repeat(" ", pos))
+}
+
+func prettyMarshalErr(id string, data []byte, err error) error {
+  msg := "loader: improper schema on prototype '" + id + "'" + ": " + err.Error()
+  return errors.New(msg)
 }

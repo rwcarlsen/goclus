@@ -23,6 +23,7 @@ func main() {
   err := l.LoadSim("input.json")
   if err != nil {
     fmt.Println(err)
+    return
   }
 
   // setup book-keeping

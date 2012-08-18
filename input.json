@@ -11,7 +11,6 @@
           "OutCommod":"milk",
           "OutUnits": "gal milk",
           "OutSize":5,"CreateRate":5
-          ,"Test":[1]
         }
       },
       "snk":{
