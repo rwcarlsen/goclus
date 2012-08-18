@@ -26,8 +26,7 @@ func Register(a interface{}) {
 
 type ProtoInfo struct {
   ImportPath string
-  Id string
-  Config string
+  Config interface{}
 }
 
 type AgentInfo struct {
@@ -60,34 +59,22 @@ func LoadSim(fname string) (*sim.Engine, error) {
     return nil, prettyParseError(string(data), err)
   }
 
-  // create prototypes
-  protos := map[string]interface{}{}
-  for _, info := range input.Prototypes {
-    p := reflect.New(agentLib[info.ImportPath]).Interface()
-
-    // configure the agent according to input
-    data := []byte(info.Config)
-    err := json.Unmarshal(data, p)
-    if err != nil {
-      return nil, prettyParseError(info.Config, err)
-    }
-
-    fmt.Println("method count: ", reflect.TypeOf(p).NumMethod())
-    protos[info.Id] = reflect.Indirect(reflect.ValueOf(p)).Interface()
-  }
-
   // create agents from prototypes
   agents := []interface{}{}
   agentMap := map[string]interface{}{}
   for _, info := range input.Agents {
     a := protos[info.ProtoId]
-    agents = append(agents, &a)
+    fmt.Println("tp4", reflect.TypeOf(a))
+    agents = append(agents, reflect.ValueOf(a).Addr().Interface())
   }
 
   // set parents
   for i, info := range input.Agents {
     tp := reflect.TypeOf(agents[i])
-    fmt.Println("all methods of:", tp.Method(0))
+    tpa := reflect.Indirect(reflect.ValueOf(agents[i])).Addr().Type()
+    fmt.Println("tp get", tp)
+    fmt.Println("type", tpa)
+    fmt.Println("all methods of:", tp.NumMethod())
     for i := 0; i < tp.NumMethod(); i++ {
       fmt.Println(tp.Method(i))
     }

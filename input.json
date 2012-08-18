@@ -4,21 +4,18 @@
               "Duration":100000000000000000,
               "Step":2629740000000000
             },
-  "Prototypes":[
-             {
+  "Prototypes":{
+             "src":{
                "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
-               "Id":"src",
-               "Config":"{\"Name\":\"src\",\"OutCommod\":\"milk\",\"OutUnits\": \"gal milk\",\"OutSize\":5,\"CreateRate\":5}"
+               "Config":"{"Name":"src","OutCommod":"milk","OutUnits": "gal milk","OutSize":5,"CreateRate":5}"
              },
-             {
+             "snk":{
                "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
-               "Id":"snk",
-               "Config":"{\"Name\":\"snk\",\"InCommod\":\"milk\",\"InUnits\": \"gal milk\",\"InSize\":5}"
+               "Config":"{"Name":"snk","InCommod":"milk","InUnits": "gal milk","InSize":5}"
              },
-             {
+             "milk market":{
                "ImportPath":"github.com/rwcarlsen/goclus/agents/mkt.Mkt",
-               "Id":"milk market",
-               "Config":"{\"Shuffle\":true}"
+               "Config":"{"Shuffle":true}"
              }
            ],
   "Agents":[
