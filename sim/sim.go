@@ -8,6 +8,11 @@ import (
   "errors"
 )
 
+type Agent interface {
+  SetId(string)
+  Id() string
+}
+
 type Ticker interface {
   Tick(*Engine)
 }

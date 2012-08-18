@@ -31,6 +31,7 @@ type Fac struct {
   ConvertPeriod time.Duration
   ConvertOffset time.Duration
   eng *sim.Engine
+  Test []int
 }
 
 func (f *Fac) init() {
@@ -42,6 +43,14 @@ func (f *Fac) init() {
   }
 }
 
+func (f *Fac) Id() string {
+  return f.Name
+}
+
+func (f *Fac) SetId(id string) {
+  f.Name = id
+}
+
 func (f *Fac) Parent() msg.Communicator {
   return nil
 }
@@ -50,6 +59,12 @@ func (f *Fac) SetParent(par msg.Communicator) {
 }
 
 func (f *Fac) Tick(eng *sim.Engine) {
+  fmt.Print(f.Name + " ticking: ")
+  fmt.Println(f.Test)
+  if len(f.Test) > 0 {
+    f.Test[0]++
+  }
+
   f.init()
   f.eng = eng
 

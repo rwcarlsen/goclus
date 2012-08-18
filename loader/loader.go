@@ -12,18 +12,6 @@ import (
   "github.com/rwcarlsen/goclus/msg"
 )
 
-var agentLib map[string]reflect.Type
-
-func Register(a interface{}) {
-  if agentLib == nil {
-    agentLib = map[string]reflect.Type{}
-  }
-  v := reflect.Indirect(reflect.ValueOf(a))
-  t := v.Type()
-  name := t.PkgPath() + "." + t.Name()
-  agentLib[name] = t
-}
-
 type ProtoInfo struct {
   ImportPath string
   Config map[string]interface{}
@@ -36,105 +24,119 @@ type AgentInfo struct {
   IndexId string
 }
 
-type SimInput struct {
+type Loader struct {
   Prototypes map[string]*ProtoInfo
   Agents []*AgentInfo
   Engine *sim.Engine
+  agentLib map[string]reflect.Type
+  protos map[string]interface{}
+  imports map[string]string
 }
 
-func NewAgent(importPath string, parent msg.Communicator) interface{} {
-  a := reflect.New(agentLib[importPath]).Interface()
+func (l *Loader) Register(a interface{}) {
+  if l.agentLib == nil {
+    l.agentLib = map[string]reflect.Type{}
+  }
+  v := reflect.Indirect(reflect.ValueOf(a))
+  t := v.Type()
+  name := t.PkgPath() + "." + t.Name()
+  l.agentLib[name] = t
+}
+
+func (l *Loader) NewAgent(importPath string, parent msg.Communicator) interface{} {
+  a := l.newPrototype(importPath)
+  l.registerWithEngine(a)
   a.(msg.Communicator).SetParent(parent)
   return a
 }
 
-func LoadSim(fname string) (*sim.Engine, error) {
+func (l *Loader) newPrototype(importPath string) interface{} {
+  return reflect.New(l.agentLib[importPath]).Interface()
+}
+
+func (l *Loader) NewAgentFromProto(protoId string, parent msg.Communicator) interface{} {
+  importPath := l.imports[protoId]
+  a := l.NewAgent(importPath, parent)
+  data, _ := json.Marshal(l.protos[protoId])
+  json.Unmarshal(data, a)
+  return a
+}
+
+func (l *Loader) registerWithEngine(a interface{}) {
+  switch t := a.(type) {
+    case sim.Ticker:
+      l.Engine.RegisterTick(t)
+  }
+  switch t := a.(type) {
+    case sim.Tocker:
+      l.Engine.RegisterTock(t)
+  }
+  switch t := a.(type) {
+    case sim.Resolver:
+      l.Engine.RegisterResolve(t)
+  }
+}
+
+func (l *Loader) LoadSim(fname string) error {
+  // load input file
   data, err := ioutil.ReadFile(fname)
   if err != nil {
-    return nil, err
+    return err
   }
 
-  // load input file
-  input := &SimInput{}
-  err = json.Unmarshal(data, &input)
+  err = json.Unmarshal(data, l)
   if err != nil {
-    return nil, prettyParseError(string(data), err)
+    return prettyParseError(string(data), err)
   }
-  eng := input.Engine
-  
+
   // create prototypes
-  protos := map[string]interface{}{}
-  imports := map[string]string{}
-  for protoId, info := range input.Prototypes {
-    pv := reflect.New(agentLib[info.ImportPath])
-    protos[protoId]= pv.Interface()
-    imports[protoId] = info.ImportPath
+  l.protos = map[string]interface{}{}
+  l.imports = map[string]string{}
+  for protoId, info := range l.Prototypes {
+    p := l.newPrototype(info.ImportPath)
+    l.protos[protoId]= p
+    l.imports[protoId] = info.ImportPath
   }
 
   // configure prototypes
-  for id, p := range protos {
-    data, _ := json.Marshal(input.Prototypes[id].Config)
+  for id, p := range l.protos {
+    data, _ := json.Marshal(l.Prototypes[id].Config)
     json.Unmarshal(data, p)
-    fmt.Println(p)
+    fmt.Println("prototype: ", p)
   }
 
   // create agents from prototypes
   agents := []interface{}{}
   agentMap := map[string]interface{}{}
-  for _, info := range input.Agents {
-    p := protos[info.ProtoId]
-    pv := reflect.Indirect(reflect.ValueOf(p))
-    pt := pv.Type()
-    av := reflect.New(agentLib[imports[info.ProtoId]])
-    for i := 0; i < pv.NumField(); i++ {
-      name := pt.Field(i).Name
-      pfield := pv.FieldByName(name)
-      afield := reflect.Indirect(av).FieldByName(name)
-      if afield.CanSet() {
-        afield.Set(pfield)
-      }
-    }
-
-    a := av.Interface()
+  for _, info := range l.Agents {
+    a := l.NewAgentFromProto(info.ProtoId, nil)
+    agentMap[info.Id] = a
     agents = append(agents, a)
     if info.IndexId != "" {
-      err := eng.RegisterComm(info.IndexId, a.(msg.Communicator))
+      err := l.Engine.RegisterComm(info.IndexId, a.(msg.Communicator))
       if err != nil {
-        panic(err.Error())
+        panic("loader: " + err.Error())
       }
     }
     fmt.Println(agents[len(agents)-1])
   }
 
-  // set parents
-  for i, info := range input.Agents {
-    tp := reflect.TypeOf(agents[i])
-    if setParent, ok := tp.MethodByName("SetParent"); ok {
+  for i, info := range l.Agents {
+    // set parents
+    if a, ok := agents[i].(msg.Communicator); ok {
       if par, ok := agentMap[info.ParentId]; ok {
-        setParent.Func.Call([]reflect.Value{reflect.ValueOf(par)})
+        a.SetParent(par.(msg.Communicator))
       }
     } else {
-      return nil, errors.New("loader: non-communicator cannot have parent")
+      return errors.New("loader: non-communicator cannot have parent")
+    }
+
+    // set Id if can
+    if a, ok := agents[i].(sim.Agent); ok {
+      a.SetId(info.Id)
     }
   }
-
-  // register for ticks, tocks, and resolves
-  for _, a := range agents {
-    switch t := a.(type) {
-      case sim.Ticker:
-        eng.RegisterTick(t)
-    }
-    switch t := a.(type) {
-      case sim.Tocker:
-        eng.RegisterTock(t)
-    }
-    switch t := a.(type) {
-      case sim.Resolver:
-        eng.RegisterResolve(t)
-    }
-  }
-
-  return eng, nil
+  return nil
 }
 
 func prettyParseError(js string, err error) error {

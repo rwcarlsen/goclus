@@ -47,16 +47,15 @@ func main() {
 }
 
 func loadertest() {
-  loader.Register(fac.Fac{})
-  loader.Register(mkt.Mkt{})
-
-  eng, err := loader.LoadSim("input.json")
+  l := &loader.Loader{}
+  l.Register(fac.Fac{})
+  l.Register(mkt.Mkt{})
+  err := l.LoadSim("input.json")
   if err != nil {
     fmt.Println(err)
-  } else {
-    fmt.Println(eng)
   }
-  eng.Run()
+
+  l.Engine.Run()
 }
 
 func config(eng *sim.Engine) {
