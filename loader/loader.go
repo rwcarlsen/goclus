@@ -54,28 +54,47 @@ func LoadSim(fname string) (*sim.Engine, error) {
     return nil, err
   }
 
+  // load input file
   input := &SimInput{}
   err = json.Unmarshal(data, &input)
   if err != nil {
     return nil, prettyParseError(string(data), err)
   }
-
-  // get the engine
   eng := input.Engine
+  
+  // create prototypes
+  protos := map[string]interface{}{}
+  imports := map[string]string{}
+  for protoId, info := range input.Prototypes {
+    pv := reflect.New(agentLib[info.ImportPath])
+    protos[protoId]= pv.Interface()
+    imports[protoId] = info.ImportPath
+  }
+
+  // configure prototypes
+  for id, p := range protos {
+    data, _ := json.Marshal(input.Prototypes[id].Config)
+    json.Unmarshal(data, p)
+    fmt.Println(p)
+  }
 
   // create agents from prototypes
   agents := []interface{}{}
   agentMap := map[string]interface{}{}
   for _, info := range input.Agents {
-    p := input.Prototypes[info.ProtoId]
-    av := reflect.New(agentLib[p.ImportPath])
-    pv := reflect.ValueOf(p.Config)
-    for _, k := range pv.MapKeys() {
-      field := reflect.Indirect(av).FieldByName(k.String())
-      val := reflect.ValueOf(p.Config[k.String()])
-      fmt.Println(field, val, " ----------------------")
-      field.Set(val)
+    p := protos[info.ProtoId]
+    pv := reflect.Indirect(reflect.ValueOf(p))
+    pt := pv.Type()
+    av := reflect.New(agentLib[imports[info.ProtoId]])
+    for i := 0; i < pv.NumField(); i++ {
+      name := pt.Field(i).Name
+      pfield := pv.FieldByName(name)
+      afield := reflect.Indirect(av).FieldByName(name)
+      if afield.CanSet() {
+        afield.Set(pfield)
+      }
     }
+
     a := av.Interface()
     agents = append(agents, a)
     if info.IndexId != "" {
