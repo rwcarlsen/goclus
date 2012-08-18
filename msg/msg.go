@@ -35,6 +35,9 @@ type Message struct {
 }
 
 func New(sender, receiver Communicator) *Message {
+  if receiver = nil {
+    panic("msg: cannot have nil message receiver")
+  }
   return &Message{
     Dir: Up,
     Sender: sender,
