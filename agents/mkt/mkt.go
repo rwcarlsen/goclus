@@ -10,10 +10,19 @@ import (
 )
 
 type Mkt struct {
+  id string
   Shuffle bool
   Seed int64
   offers msg.Group
   requests msg.Group
+}
+
+func (m *Mkt) SetId(id string) {
+  m.id = id
+}
+
+func (m *Mkt) Id() string {
+  return m.id
 }
 
 func (m *Mkt) Receive(mg *msg.Message) {
