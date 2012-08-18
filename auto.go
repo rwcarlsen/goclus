@@ -2,21 +2,24 @@
 package main
 
 import (
-  "github.com/rwcarlsen/goclus/agents/fac"
-  "github.com/rwcarlsen/goclus/agents/mkt"
-
   "fmt"
   "github.com/rwcarlsen/goclus/books"
   "github.com/rwcarlsen/goclus/trans"
   "github.com/rwcarlsen/goclus/msg"
   "github.com/rwcarlsen/goclus/loader"
+  "github.com/rwcarlsen/goclus/agents/fac"
+  "github.com/rwcarlsen/goclus/agents/mkt"
 )
+
+func registerAgents(l *loader.Loader) {
+  l.Register(fac.Fac{})
+  l.Register(mkt.Mkt{})
+}
 
 func main() {
   // load simulation
   l := &loader.Loader{}
-  l.Register(fac.Fac{})
-  l.Register(mkt.Mkt{})
+  registerAgents(l)
   err := l.LoadSim("input.json")
   if err != nil {
     fmt.Println(err)
