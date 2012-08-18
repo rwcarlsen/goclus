@@ -1,5 +1,5 @@
 
-package loader
+package sim
 
 import (
   "strings"
@@ -8,7 +8,6 @@ import (
   "io/ioutil"
   "encoding/json"
   "reflect"
-  "github.com/rwcarlsen/goclus/sim"
   "github.com/rwcarlsen/goclus/msg"
 )
 
@@ -27,7 +26,7 @@ type AgentInfo struct {
 type Loader struct {
   Prototypes map[string]*ProtoInfo
   Agents []*AgentInfo
-  Engine *sim.Engine
+  Engine *Engine
   agentLib map[string]reflect.Type
   protos map[string]interface{}
   imports map[string]string
@@ -64,15 +63,15 @@ func (l *Loader) NewAgentFromProto(protoId string, parent msg.Communicator) inte
 
 func (l *Loader) registerWithEngine(a interface{}) {
   switch t := a.(type) {
-    case sim.Ticker:
+    case Ticker:
       l.Engine.RegisterTick(t)
   }
   switch t := a.(type) {
-    case sim.Tocker:
+    case Tocker:
       l.Engine.RegisterTock(t)
   }
   switch t := a.(type) {
-    case sim.Resolver:
+    case Resolver:
       l.Engine.RegisterResolve(t)
   }
 }
@@ -133,10 +132,12 @@ func (l *Loader) LoadSim(fname string) error {
     }
 
     // set Id if can
-    if a, ok := agents[i].(sim.Agent); ok {
+    if a, ok := agents[i].(Agent); ok {
       a.SetId(info.Id)
     }
   }
+
+  l.Engine.Load = l
   return nil
 }
 

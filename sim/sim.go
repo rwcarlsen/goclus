@@ -33,6 +33,7 @@ type Resolver interface {
 type Engine struct {
   Duration time.Duration
   Step time.Duration
+  Load *Loader
   comms map[string]msg.Communicator
   tickers []Ticker
   tockers []Tocker
