@@ -9,16 +9,11 @@ import (
   "github.com/rwcarlsen/goclus/books"
   "github.com/rwcarlsen/goclus/trans"
   "github.com/rwcarlsen/goclus/msg"
-
-  "github.com/rwcarlsen/goclus/loader"
   "github.com/rwcarlsen/goclus/agents/fac"
   "github.com/rwcarlsen/goclus/agents/mkt"
 )
 
 func main() {
-  loadertest()
-  return
-
   var month time.Duration = 43829 * time.Minute
   eng := &sim.Engine{
     Duration: 36 * month,
@@ -44,18 +39,6 @@ func main() {
   if err != nil {
     fmt.Println(err)
   }
-}
-
-func loadertest() {
-  l := &loader.Loader{}
-  l.Register(fac.Fac{})
-  l.Register(mkt.Mkt{})
-  err := l.LoadSim("input.json")
-  if err != nil {
-    fmt.Println(err)
-  }
-
-  l.Engine.Run()
 }
 
 func config(eng *sim.Engine) {
