@@ -56,6 +56,7 @@ func loadertest() {
   } else {
     fmt.Println(eng)
   }
+  eng.Run()
 }
 
 func config(eng *sim.Engine) {

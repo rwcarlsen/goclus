@@ -26,7 +26,7 @@ func Register(a interface{}) {
 
 type ProtoInfo struct {
   ImportPath string
-  Config interface{}
+  Config map[string]interface{}
 }
 
 type AgentInfo struct {
@@ -36,7 +36,7 @@ type AgentInfo struct {
 }
 
 type SimInput struct {
-  Prototypes []*ProtoInfo
+  Prototypes map[string]*ProtoInfo
   Agents []*AgentInfo
   Engine *sim.Engine
 }
@@ -63,22 +63,22 @@ func LoadSim(fname string) (*sim.Engine, error) {
   agents := []interface{}{}
   agentMap := map[string]interface{}{}
   for _, info := range input.Agents {
-    a := protos[info.ProtoId]
-    fmt.Println("tp4", reflect.TypeOf(a))
-    agents = append(agents, reflect.ValueOf(a).Addr().Interface())
+    p := input.Prototypes[info.ProtoId]
+    av := reflect.New(agentLib[p.ImportPath])
+    pv := reflect.ValueOf(p.Config)
+    for _, k := range pv.MapKeys() {
+      field := reflect.Indirect(av).FieldByName(k.String())
+      val := reflect.ValueOf(p.Config[k.String()])
+      fmt.Println(field, val, " ----------------------")
+      field.Set(val)
+    }
+    agents = append(agents, av.Interface())
+    fmt.Println(agents[len(agents)-1])
   }
 
   // set parents
   for i, info := range input.Agents {
     tp := reflect.TypeOf(agents[i])
-    tpa := reflect.Indirect(reflect.ValueOf(agents[i])).Addr().Type()
-    fmt.Println("tp get", tp)
-    fmt.Println("type", tpa)
-    fmt.Println("all methods of:", tp.NumMethod())
-    for i := 0; i < tp.NumMethod(); i++ {
-      fmt.Println(tp.Method(i))
-    }
-
     if setParent, ok := tp.MethodByName("SetParent"); ok {
       if par, ok := agentMap[info.ParentId]; ok {
         setParent.Func.Call([]reflect.Value{reflect.ValueOf(par)})
@@ -104,6 +104,7 @@ func LoadSim(fname string) (*sim.Engine, error) {
     switch t := a.(type) {
       case sim.Resolver:
         eng.RegisterResolve(t)
+        eng.RegisterComm("name", t)
     }
   }
 
