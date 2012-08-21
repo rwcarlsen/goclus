@@ -13,7 +13,21 @@ const (
   Request
 )
 
-var ToOutput chan *Transaction
+var listeners []Listener
+
+type Listener interface {
+  TransNotify(*Transaction)
+}
+
+func ListenAll(l Listener) {
+  listeners = append(listeners, l)
+}
+
+func notifyListeners(t *Transaction) {
+  for _, l := range listeners {
+    l.TransNotify(t)
+  }
+}
 
 type Supplier interface {
   RemoveResource(*Transaction)
@@ -63,9 +77,7 @@ func (t *Transaction) MatchWith(other *Transaction) error {
 func (t *Transaction) Approve() {
   t.Sup.RemoveResource(t)
   t.Req.AddResource(t)
-  if ToOutput != nil {
-    ToOutput<-t
-  }
+  notifyListeners(t)
 }
 
 func (t *Transaction) Resource() rsrc.Resource {

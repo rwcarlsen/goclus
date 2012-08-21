@@ -7,8 +7,6 @@ import (
   "github.com/rwcarlsen/goclus/sim"
   "github.com/rwcarlsen/goclus/rsrc"
   "github.com/rwcarlsen/goclus/books"
-  "github.com/rwcarlsen/goclus/trans"
-  "github.com/rwcarlsen/goclus/msg"
   "github.com/rwcarlsen/goclus/agents/fac"
   "github.com/rwcarlsen/goclus/agents/mkt"
 )
@@ -21,21 +19,15 @@ func main() {
   }
   config(eng)
 
-  transCh := make(chan *trans.Transaction)
-  msgCh := make(chan *msg.Message)
-  trans.ToOutput = transCh
-  msg.ToOutput = msgCh
-
-  b := books.Books{
-    TransIn: transCh,
-    MsgIn: msgCh,
-    Eng: eng,
-  }
-  b.Collect()
+  bks := &books.Books{Eng: eng}
+  bks.Collect()
+  defer bks.Close()
+  eng.RegisterMsgNotify(bks)
+  eng.RegisterTransNotify(bks)
 
   eng.Run()
-  b.Close()
-  err := b.Dump()
+
+  err := bks.Dump()
   if err != nil {
     fmt.Println(err)
   }

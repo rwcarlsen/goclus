@@ -31,9 +31,9 @@ type AgentData struct {
 type Books struct {
   aId int
   done chan bool
-  TransIn chan *trans.Transaction
-  MsgIn chan *msg.Message
-  MiscIn chan interface{}
+  transIn chan *trans.Transaction
+  msgIn chan *msg.Message
+  miscIn chan interface{}
   TranDat []*TransData
   AgentDat map[interface{}]*AgentData
   MiscDat []interface{}
@@ -44,19 +44,29 @@ func (b *Books) Close() {
   b.done<-true
 }
 
+func (b *Books) MsgNotify(m *msg.Message) {
+  b.msgIn<-m
+}
+
+func (b *Books) TransNotify(t *trans.Transaction) {
+  b.transIn<-t
+}
+
 // Collect dispatches a goroutine that records data fed into transIn and commIn
 // terminating when the Close method is called.
 func (b *Books) Collect() {
   b.done = make(chan bool)
+  b.transIn = make(chan *trans.Transaction)
+  b.msgIn = make(chan *msg.Message)
   go func() {
     for {
       select {
-        case t := <-b.TransIn:
+        case t := <-b.transIn:
           b.regTrans(t)
-        case m := <-b.MsgIn:
+        case m := <-b.msgIn:
           b.regComm(m.PrevOwner)
           b.regComm(m.Owner)
-        case i := <-b.MiscIn:
+        case i := <-b.miscIn:
           b.MiscDat = append(b.MiscDat, i)
         case <-b.done:
           return

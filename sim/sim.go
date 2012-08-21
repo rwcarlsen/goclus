@@ -5,6 +5,7 @@ import (
   "time"
   "fmt"
   "github.com/rwcarlsen/goclus/msg"
+  "github.com/rwcarlsen/goclus/trans"
   "errors"
 )
 
@@ -35,6 +36,8 @@ type Engine struct {
   Step time.Duration
   Load *Loader
   comms map[string]msg.Communicator
+  msgListen []msg.Listener
+  transListen []trans.Listener
   tickers []Ticker
   tockers []Tocker
   resolvers []Resolver
@@ -82,7 +85,30 @@ func (e *Engine) RegisterResolve(rs ...Resolver) {
   e.resolvers = append(e.resolvers, rs...)
 }
 
+func (e *Engine) RegisterMsgNotify(l msg.Listener) {
+  e.msgListen = append(e.msgListen, l)
+}
+
+func (e *Engine) RegisterTransNotify(l trans.Listener) {
+  e.transListen = append(e.transListen, l)
+}
+
+func (e *Engine) MsgNotify(m *msg.Message) {
+  for _, l := range e.msgListen {
+    l.MsgNotify(m)
+  }
+}
+
+func (e *Engine) TransNotify(t *trans.Transaction) {
+  for _, l := range e.transListen {
+    l.TransNotify(t)
+  }
+}
+
 func (e *Engine) Run() {
+  msg.ListenAll(e)
+  trans.ListenAll(e)
+
   start := time.Time{}
   end := start.Add(e.Duration)
   for tm := start; tm.Before(end); tm = tm.Add(e.Step) {

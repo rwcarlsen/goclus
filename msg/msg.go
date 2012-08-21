@@ -5,7 +5,7 @@ import (
   "github.com/rwcarlsen/goclus/trans"
 )
 
-var ToOutput chan *Message
+var listeners []Listener
 
 type MsgDir int
 
@@ -22,12 +22,26 @@ type Communicator interface {
   SetParent(Communicator)
 }
 
+type Listener interface {
+  MsgNotify(*Message)
+}
+
+func ListenAll(l Listener) {
+  listeners = append(listeners, l)
+}
+
+func notifyListeners(m *Message) {
+  for _, l := range listeners {
+    l.MsgNotify(m)
+  }
+}
+
 type Message struct {
   Dir MsgDir
   Trans *trans.Transaction
   Sender Communicator
   Receiver Communicator
-  Notes string
+  Payload interface{}
   PrevOwner Communicator
   Owner Communicator
   pathStack []Communicator
@@ -67,10 +81,7 @@ func (m *Message) SendOn() {
   next := m.pathStack[len(m.pathStack)-1]
   m.PrevOwner, m.Owner = m.Owner, next
 
-  if ToOutput != nil {
-    ToOutput<-m
-  }
-
+  notifyListeners(m)
   m.hasDest = false
   next.Receive(m)
 }
