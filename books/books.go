@@ -75,12 +75,6 @@ func (b *Books) Collect() {
   }()
 }
 
-func (b *Books) init() {
-  if b.AgentDat == nil {
-    b.AgentDat = map[interface{}]*AgentData{}
-  }
-}
-
 func (b *Books) regTrans(t *trans.Transaction) {
   id, tid := 0, 0
   if len(b.TranDat) > 0 {
@@ -117,8 +111,9 @@ func (b *Books) regComm(c msg.Communicator) {
 }
 
 func (b *Books) regAgent(a interface{}) {
-  b.init()
-  if _, ok := b.AgentDat[a]; ok {
+  if b.AgentDat == nil {
+    b.AgentDat = map[interface{}]*AgentData{}
+  } else if _, ok := b.AgentDat[a]; ok {
     return
   }
 
