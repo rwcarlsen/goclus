@@ -49,30 +49,7 @@ func (b *Books) Id() string {
   return b.id
 }
 
-func (b *Books) SetEngine(e *sim.Engine) {
-  b.init()
-  b.msgIn<-m
-}
-
-func (b *Books) End() {
-  b.done<-true
-  b.saveData()
-}
-
-func (b *Books) MsgNotify(m *msg.Message) {
-  b.init()
-  b.msgIn<-m
-}
-
-func (b *Books) TransNotify(t *trans.Transaction) {
-  b.init()
-  b.transIn<-t
-}
-
-func (b *Books) init() {
-  if b.done != nil {
-    return
-  }
+func (b *Books) Start(e *sim.Engine) {
   b.done = make(chan bool)
   b.transIn = make(chan *trans.Transaction)
   b.msgIn = make(chan *msg.Message)
@@ -91,6 +68,19 @@ func (b *Books) init() {
       }
     }
   }()
+}
+
+func (b *Books) End(e *sim.Engine) {
+  b.done<-true
+  b.saveData()
+}
+
+func (b *Books) MsgNotify(m *msg.Message) {
+  b.msgIn<-m
+}
+
+func (b *Books) TransNotify(t *trans.Transaction) {
+  b.transIn<-t
 }
 
 func (b *Books) regTrans(t *trans.Transaction) {
@@ -163,8 +153,8 @@ func (b *Books) saveData() error {
 }
 
 func (b *Books) getTime() time.Time {
-  if b.Eng != nil {
-    return b.Eng.Time()
+  if b.eng != nil {
+    return b.eng.Time()
   }
   return time.Time{}
 }

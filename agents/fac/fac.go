@@ -13,7 +13,7 @@ import (
 )
 
 type Fac struct {
-  Name string
+  id string
   queuedOrders []*msg.Message
 
   InCommod string
@@ -33,21 +33,20 @@ type Fac struct {
   eng *sim.Engine
 }
 
-func (f *Fac) init() {
-  if f.inBuff == nil {
-    f.inBuff = &buff.Buffer{}
-    f.inBuff.SetCapacity(f.InSize)
-    f.outBuff = &buff.Buffer{}
-    f.outBuff.SetCapacity(f.OutSize)
-  }
+func (f *Fac) Start(e *sim.Engine) {
+  f.eng = e
+  f.inBuff = &buff.Buffer{}
+  f.inBuff.SetCapacity(f.InSize)
+  f.outBuff = &buff.Buffer{}
+  f.outBuff.SetCapacity(f.OutSize)
 }
 
 func (f *Fac) Id() string {
-  return f.Name
+  return f.id
 }
 
 func (f *Fac) SetId(id string) {
-  f.Name = id
+  f.id = id
 }
 
 func (f *Fac) Parent() msg.Communicator {
@@ -57,10 +56,7 @@ func (f *Fac) Parent() msg.Communicator {
 func (f *Fac) SetParent(par msg.Communicator) {
 }
 
-func (f *Fac) Tick(eng *sim.Engine) {
-  f.init()
-  f.eng = eng
-
+func (f *Fac) Tick() {
   // make offers
   qty := f.outBuff.Qty()
   if qty > rsrc.EPS {
@@ -90,11 +86,9 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
   m.SendOn()
 }
 
-func (f *Fac) Tock(eng *sim.Engine) {
-  f.init()
-  f.eng = eng
+func (f *Fac) Tock() {
   if f.ConvertPeriod == 0 {
-    f.ConvertPeriod = eng.Step
+    f.ConvertPeriod = f.eng.Step
   }
 
   f.approveOffers()
@@ -147,16 +141,14 @@ func (f *Fac) Receive(m *msg.Message) {
 }
 
 func (f *Fac) RemoveResource(tran *trans.Transaction) {
-  fmt.Println(f.Name, " sending qty=", tran.Resource().Qty(), "of", f.OutCommod)
-  f.init()
+  fmt.Println(f.id, " sending qty=", tran.Resource().Qty(), "of", f.OutCommod)
   rs, err := f.outBuff.PopQty(tran.Resource().Qty())
   check(err)
   tran.Manifest = rs
 }
 
 func (f *Fac) AddResource(tran *trans.Transaction) {
-  fmt.Println(f.Name, " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
-  f.init()
+  fmt.Println(f.id, " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
   err := f.inBuff.PushAll(tran.Manifest)
   check(err)
 }

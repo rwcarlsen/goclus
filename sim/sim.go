@@ -12,7 +12,14 @@ import (
 type Agent interface {
   SetId(string)
   Id() string
-  SetEngine(*Engine)
+}
+
+type Starter interface {
+  Start(*Engine)
+}
+
+type Ender interface {
+  End(*Engine)
 }
 
 type Ticker interface {
@@ -23,15 +30,6 @@ type Tocker interface {
   Tock()
 }
 
-type Ender interface {
-  End()
-}
-
-type TickTocker interface {
-  Ticker
-  Tocker
-}
-
 type Resolver interface {
   Resolve()
 }
@@ -40,55 +38,99 @@ type Engine struct {
   Duration time.Duration
   Step time.Duration
   Load *Loader
-  comms map[string]msg.Communicator
+  services map[string]Agent
   msgListen []msg.Listener
   transListen []trans.Listener
   tickers []Ticker
+  resolvers []Resolver
   tockers []Tocker
   enders []Ender
-  resolvers []Resolver
   tm time.Time // current time (in the simulation)
 }
 
-func (e *Engine) RegisterComm(name string, c msg.Communicator) error {
-  if e.comms == nil {
-    e.comms = map[string]msg.Communicator{}
+func (e *Engine) RegisterService(a Agent) error {
+  if e.services == nil {
+    e.services = map[string]Agent{}
   }
 
-  if _, ok := e.comms[name]; ok {
-    return errors.New("sim: duplicate name registration '" + name + "'")
+  if _, ok := e.services[a.Id()]; ok {
+    return errors.New("sim: duplicate service id '" + a.Id() + "'")
   }
-  e.comms[name] = c
+  e.services[a.Id()] = a
   return nil
 }
 
-func (e *Engine) GetComm(name string) (msg.Communicator, error) {
-  unreg := errors.New("sim: name not registered")
-  if e.comms == nil {
-    return nil, unreg
-  } else if _, ok := e.comms[name]; !ok {
+func (e *Engine) GetService(id string) (Agent, error) {
+  unreg := errors.New("sim: service id '" + id + "' not registered")
+  if e.services == nil {
     return nil, unreg
   }
-  return e.comms[name], nil
+  a, ok := e.services[id]
+  if !ok {
+    return nil, unreg
+  }
+  return a, nil
+}
+
+func (e *Engine) GetComm(id string) (msg.Communicator, error) {
+  v, err := e.GetService(id)
+  if err == nil {
+    if c, ok := v.(msg.Communicator); ok {
+      return c, nil
+    }
+    return nil, errors.New("sim: cannot convert '" + id + "' to msg.Communicator")
+  }
+  return nil, err
+}
+
+func (e *Engine) RegisterStart(starters ...Starter) {
+  for _, s := range starters {
+    s.Start(e)
+  }
+}
+
+
+func (e *Engine) RegisterAll(a Agent) {
+  switch t := a.(type) {
+    case Ticker:
+      e.RegisterTick(t)
+  }
+  switch t := a.(type) {
+    case Tocker:
+      e.RegisterTock(t)
+  }
+  switch t := a.(type) {
+    case Resolver:
+      e.RegisterResolve(t)
+  }
+  switch t := a.(type) {
+    case Starter:
+      e.RegisterStart(t)
+  }
+  switch t := a.(type) {
+    case Ender:
+      e.RegisterEnd(t)
+  }
+  switch t := a.(type) {
+    case msg.Listener:
+      e.RegisterMsgNotify(t)
+  }
+  switch t := a.(type) {
+    case trans.Listener:
+      e.RegisterTransNotify(t)
+  }
 }
 
 func (e *Engine) RegisterTick(ts ...Ticker) {
   e.tickers = append(e.tickers, ts...)
 }
 
-func (e *Engine) RegisterTock(ts ...Tocker) {
-  e.tockers = append(e.tockers, ts...)
-}
-
-func (e *Engine) RegisterTickTock(ts ...TickTocker) {
-  for _, t := range ts {
-    e.RegisterTick(t)
-    e.RegisterTock(t)
-  }
-}
-
 func (e *Engine) RegisterResolve(rs ...Resolver) {
   e.resolvers = append(e.resolvers, rs...)
+}
+
+func (e *Engine) RegisterTock(ts ...Tocker) {
+  e.tockers = append(e.tockers, ts...)
 }
 
 func (e *Engine) RegisterEnd(enders ...Ender) {
@@ -118,11 +160,16 @@ func (e *Engine) TransNotify(t *trans.Transaction) {
 func (e *Engine) Run() {
   msg.ListenAll(e)
   trans.ListenAll(e)
+  e.runTimeSteps()
+  for _, en := range e.enders {
+    en.End(e)
+  }
+}
 
-  start := time.Time{}
-  end := start.Add(e.Duration)
-  for tm := start; tm.Before(end); tm = tm.Add(e.Step) {
-    fmt.Println("timestep: ", tm)
+func (e *Engine) runTimeSteps() {
+  end := e.tm.Add(e.Duration)
+  for ; e.tm.Before(end); e.tm = e.tm.Add(e.Step) {
+    fmt.Println("timestep: ", e.tm)
     fmt.Println("ticking...")
     for _, t := range e.tickers {
       t.Tick()
@@ -135,10 +182,6 @@ func (e *Engine) Run() {
     for _, t := range e.tockers {
       t.Tock()
     }
-  }
-
-  for _, en := range e.enders {
-    en.End()
   }
 }
 

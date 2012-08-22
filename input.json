@@ -6,7 +6,7 @@
             },
   "Prototypes":{
       "book-keeper":{
-        "ImportPath":"github.com/rwcarlsen/goclus/books.Books",
+        "ImportPath":"github.com/rwcarlsen/goclus/books.Books"
       },
       "src":{
         "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
@@ -53,8 +53,8 @@
       "ParentId":"0"
     },
     {
-      "IndexId":"milk",
-      "Id":"milk market1",
+      "IsService":true,
+      "Id":"milk",
       "ProtoId":"milk market",
       "ParentId":"0"
     }

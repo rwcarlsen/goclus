@@ -20,7 +20,7 @@ type AgentInfo struct {
   Id string
   ProtoId string
   ParentId string
-  IndexId string
+  IsService bool
 }
 
 type Loader struct {
@@ -44,13 +44,17 @@ func (l *Loader) Register(a interface{}) {
 
 func (l *Loader) NewAgent(importPath string, parent msg.Communicator) interface{} {
   a := l.newPrototype(importPath)
-  l.registerWithEngine(a)
-  a.(msg.Communicator).SetParent(parent)
+  if parent != nil {
+    a.(msg.Communicator).SetParent(parent)
+  }
   return a
 }
 
 func (l *Loader) newPrototype(importPath string) interface{} {
-  return reflect.New(l.agentLib[importPath]).Interface()
+  if tp, ok := l.agentLib[importPath]; ok {
+    return reflect.New(tp).Interface()
+  }
+  panic("loader: No registered agent for import path '" + importPath + "'")
 }
 
 func (l *Loader) NewAgentFromProto(protoId string, parent msg.Communicator) interface{} {
@@ -59,33 +63,6 @@ func (l *Loader) NewAgentFromProto(protoId string, parent msg.Communicator) inte
   data, _ := json.Marshal(l.protos[protoId])
   json.Unmarshal(data, a)
   return a
-}
-
-func (l *Loader) registerWithEngine(a interface{}) {
-  switch t := a.(type) {
-    case Ticker:
-      l.Engine.RegisterTick(t)
-  }
-  switch t := a.(type) {
-    case Tocker:
-      l.Engine.RegisterTock(t)
-  }
-  switch t := a.(type) {
-    case Resolver:
-      l.Engine.RegisterResolve(t)
-  }
-  switch t := a.(type) {
-    case Ender:
-      l.Engine.RegisterEnd(t)
-  }
-  switch t := a.(type) {
-    case msg.Listener:
-      l.Engine.RegisterMsgNotify(t)
-  }
-  switch t := a.(type) {
-    case trans.Listener:
-      l.Engine.RegisterTransNotify(t)
-  }
 }
 
 func (l *Loader) LoadSim(fname string) error {
@@ -111,6 +88,9 @@ func (l *Loader) LoadSim(fname string) error {
 
   // configure prototypes
   for id, p := range l.protos {
+    if l.Prototypes[id].Config == nil {
+      continue
+    }
     data, _ := json.Marshal(l.Prototypes[id].Config)
     err := json.Unmarshal(data, p)
     if err != nil {
@@ -125,9 +105,18 @@ func (l *Loader) LoadSim(fname string) error {
     a := l.NewAgentFromProto(info.ProtoId, nil)
     agentMap[info.Id] = a
     agents = append(agents, a)
-    if info.IndexId != "" {
-      err := l.Engine.RegisterComm(info.IndexId, a.(msg.Communicator))
-      if err != nil {
+
+    ag, ok := a.(Agent)
+    if !ok {
+      panic("loader: Agent '" + info.Id + "' does not implement required sim.Agent methods")
+    }
+
+    ag.SetId(info.Id)
+    l.Engine.RegisterAll(ag)
+
+    // register as service
+    if info.IsService {
+      if err := l.Engine.RegisterService(ag); err != nil {
         panic("loader: " + err.Error())
       }
     }
@@ -139,17 +128,8 @@ func (l *Loader) LoadSim(fname string) error {
       if par, ok := agentMap[info.ParentId]; ok {
         c.SetParent(par.(msg.Communicator))
       }
-    } else {
-      return errors.New("loader: non-communicator cannot have parent")
     }
 
-    // set Id and engine
-    a, ok := agents[i].(Agent)
-    if !ok {
-      return errors.New("loader: module does not implement required sim.Agent methods")
-    }
-    a.SetId(info.Id)
-    a.SetEngine(l.Engine)
   }
 
   l.Engine.Load = l

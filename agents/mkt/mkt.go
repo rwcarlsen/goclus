@@ -6,7 +6,6 @@ import (
   "github.com/rwcarlsen/goclus/msg"
   "github.com/rwcarlsen/goclus/rsrc"
   "github.com/rwcarlsen/goclus/trans"
-  "github.com/rwcarlsen/goclus/sim"
 )
 
 type Mkt struct {
@@ -40,7 +39,7 @@ func (m *Mkt) Parent() msg.Communicator {
 func (f *Mkt) SetParent(par msg.Communicator) {
 }
 
-func (m *Mkt) Resolve(eng *sim.Engine) {
+func (m *Mkt) Resolve() {
   if m.Shuffle {
     shuffle(m.offers)
     shuffle(m.requests)
