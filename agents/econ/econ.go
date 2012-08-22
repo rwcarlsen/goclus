@@ -10,7 +10,7 @@ type Econ struct {
    req map[msg.Communicator]map[time.Time]float64
    off map[msg.Communicator]map[time.Time]float64
    Tracked []string
-   tm time.Time
+   eng *sim.Engine
 }
 
 func (e *Econ) SetId(id string) {
@@ -21,8 +21,8 @@ func (e *Econ) Id() string {
   return m.id
 }
 
-func (e *Econ) Tick(eng *sim.Engine) {
-  e.tm = eng.Time()
+func (e *Econ) Start(eng *sim.Engine) {
+  e.eng = eng
 }
 
 func (e *Econ) Receive(m *msg.Message) {
