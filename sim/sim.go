@@ -12,14 +12,19 @@ import (
 type Agent interface {
   SetId(string)
   Id() string
+  SetEngine(*Engine)
 }
 
 type Ticker interface {
-  Tick(*Engine)
+  Tick()
 }
 
 type Tocker interface {
-  Tock(*Engine)
+  Tock()
+}
+
+type Ender interface {
+  End()
 }
 
 type TickTocker interface {
@@ -28,7 +33,7 @@ type TickTocker interface {
 }
 
 type Resolver interface {
-  Resolve(*Engine)
+  Resolve()
 }
 
 type Engine struct {
@@ -40,6 +45,7 @@ type Engine struct {
   transListen []trans.Listener
   tickers []Ticker
   tockers []Tocker
+  enders []Ender
   resolvers []Resolver
   tm time.Time // current time (in the simulation)
 }
@@ -85,6 +91,10 @@ func (e *Engine) RegisterResolve(rs ...Resolver) {
   e.resolvers = append(e.resolvers, rs...)
 }
 
+func (e *Engine) RegisterEnd(enders ...Ender) {
+  e.enders = append(e.enders, enders...)
+}
+
 func (e *Engine) RegisterMsgNotify(l msg.Listener) {
   e.msgListen = append(e.msgListen, l)
 }
@@ -115,16 +125,20 @@ func (e *Engine) Run() {
     fmt.Println("timestep: ", tm)
     fmt.Println("ticking...")
     for _, t := range e.tickers {
-      t.Tick(e)
+      t.Tick()
     }
     fmt.Println("resolving...")
     for _, r := range e.resolvers {
-      r.Resolve(e)
+      r.Resolve()
     }
     fmt.Println("tocking...")
     for _, t := range e.tockers {
-      t.Tock(e)
+      t.Tock()
     }
+  }
+
+  for _, en := range e.enders {
+    en.End()
   }
 }
 

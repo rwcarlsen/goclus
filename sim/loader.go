@@ -74,6 +74,18 @@ func (l *Loader) registerWithEngine(a interface{}) {
     case Resolver:
       l.Engine.RegisterResolve(t)
   }
+  switch t := a.(type) {
+    case Ender:
+      l.Engine.RegisterEnd(t)
+  }
+  switch t := a.(type) {
+    case msg.Listener:
+      l.Engine.RegisterMsgNotify(t)
+  }
+  switch t := a.(type) {
+    case trans.Listener:
+      l.Engine.RegisterTransNotify(t)
+  }
 }
 
 func (l *Loader) LoadSim(fname string) error {
@@ -123,18 +135,21 @@ func (l *Loader) LoadSim(fname string) error {
 
   for i, info := range l.Agents {
     // set parents
-    if a, ok := agents[i].(msg.Communicator); ok {
+    if c, ok := agents[i].(msg.Communicator); ok {
       if par, ok := agentMap[info.ParentId]; ok {
-        a.SetParent(par.(msg.Communicator))
+        c.SetParent(par.(msg.Communicator))
       }
     } else {
       return errors.New("loader: non-communicator cannot have parent")
     }
 
-    // set Id if can
-    if a, ok := agents[i].(Agent); ok {
-      a.SetId(info.Id)
+    // set Id and engine
+    a, ok := agents[i].(Agent)
+    if !ok {
+      return errors.New("loader: module does not implement required sim.Agent methods")
     }
+    a.SetId(info.Id)
+    a.SetEngine(l.Engine)
   }
 
   l.Engine.Load = l

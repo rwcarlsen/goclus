@@ -5,6 +5,9 @@
               "Step":2629740000000000
             },
   "Prototypes":{
+      "book-keeper":{
+        "ImportPath":"github.com/rwcarlsen/goclus/books.Books",
+      },
       "src":{
         "ImportPath":"github.com/rwcarlsen/goclus/agents/fac.Fac",
         "Config":{
@@ -29,6 +32,11 @@
       }
     },
   "Agents":[
+    {
+      "Id":"book-keeper1",
+      "ProtoId":"book-keeper",
+      "ParentId":"0"
+    },
     {
       "Id":"src1",
       "ProtoId":"src",

@@ -29,32 +29,50 @@ type AgentData struct {
 }
 
 type Books struct {
+  id string
+  eng *sim.Engine
   aId int
   done chan bool
   transIn chan *trans.Transaction
   msgIn chan *msg.Message
   miscIn chan interface{}
-  TranDat []*TransData
+  tranDat []*TransData
   AgentDat map[interface{}]*AgentData
   MiscDat []interface{}
-  Eng *sim.Engine
 }
 
-func (b *Books) Close() {
+func (b *Books) SetId(id string) {
+  b.id = id
+}
+
+func (b *Books) Id() string {
+  return b.id
+}
+
+func (b *Books) SetEngine(e *sim.Engine) {
+  b.init()
+  b.msgIn<-m
+}
+
+func (b *Books) End() {
   b.done<-true
+  b.saveData()
 }
 
 func (b *Books) MsgNotify(m *msg.Message) {
+  b.init()
   b.msgIn<-m
 }
 
 func (b *Books) TransNotify(t *trans.Transaction) {
+  b.init()
   b.transIn<-t
 }
 
-// Collect dispatches a goroutine that records data fed into transIn and commIn
-// terminating when the Close method is called.
-func (b *Books) Collect() {
+func (b *Books) init() {
+  if b.done != nil {
+    return
+  }
   b.done = make(chan bool)
   b.transIn = make(chan *trans.Transaction)
   b.msgIn = make(chan *msg.Message)
@@ -77,9 +95,9 @@ func (b *Books) Collect() {
 
 func (b *Books) regTrans(t *trans.Transaction) {
   id, tid := 0, 0
-  if len(b.TranDat) > 0 {
-    id = b.TranDat[len(b.TranDat)-1].Id + 1
-    tid = b.TranDat[len(b.TranDat)-1].TransId + 1
+  if len(b.tranDat) > 0 {
+    id = b.tranDat[len(b.tranDat)-1].Id + 1
+    tid = b.tranDat[len(b.tranDat)-1].TransId + 1
   }
 
   b.regAgent(t.Sup)
@@ -96,7 +114,7 @@ func (b *Books) regTrans(t *trans.Transaction) {
       Qty: r.Qty(),
       Units: r.Units(),
     }
-    b.TranDat = append(b.TranDat, tdat)
+    b.tranDat = append(b.tranDat, tdat)
   }
 }
 
@@ -128,14 +146,14 @@ func (b *Books) regAgent(a interface{}) {
   }
 }
 
-func (b *Books) Dump() error {
+func (b *Books) saveData() error {
   agents := []*AgentData{}
   for _, val := range b.AgentDat {
     agents = append(agents, val)
   }
 
   err1 := dump("agents.out", agents)
-  err2 := dump("trans.out", b.TranDat)
+  err2 := dump("trans.out", b.tranDat)
   if err1 != nil {
     return err1
   } else if err2 != nil {
