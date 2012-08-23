@@ -135,7 +135,7 @@ func (f *Fac) convertRes() {
 }
 
 func (f *Fac) Receive(m *msg.Message) {
-  if m.Sender == f {
+  if m.Sender() == f {
     f.queuedOrders = append(f.queuedOrders, m)
   }
 }
