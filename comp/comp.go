@@ -1,4 +1,5 @@
 
+// Package comp contains types for manipulation of nuclear material compositions.
 package comp
 
 import "errors"

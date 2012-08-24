@@ -1,4 +1,6 @@
 
+// Package msg declares types and interfaces used for inter-agent
+// communication.
 package msg
 
 import (
@@ -55,7 +57,7 @@ func notifyListeners(m *Message) {
   }
 }
 
-// Message is canonical way to send information between simulation agents.
+// Message is the canonical way to send information between simulation agents.
 //
 // Creating and sending a message:
 //
@@ -73,12 +75,12 @@ type Message struct {
   // Trans is used to carry desired/matched transaction information between
   // agents.
   Trans *trans.Transaction
-  sender Communicator
-  receiver Communicator
   // Payload can be used as desired to send arbitrary information.
   Payload interface{}
   PrevOwner Communicator
   Owner Communicator
+  sender Communicator
+  receiver Communicator
   pathStack []Communicator
   hasDest bool
 }
@@ -108,14 +110,26 @@ func (m *Message) Receiver() *Message {
   return m.receiver
 }
 
-// Clone
+// Clone returns a shallow copy of this message except the copy has a clone
+// of the message's transaction.
 func (m *Message) Clone() *Message {
   clone := *m
   clone.Trans = m.Trans.Clone()
   return &clone
 }
 
-// SendOn
+// SendOn sends the message toward its intended destination.
+//
+// If the message Dir is Up and SetNext is not called, the message is sent
+// to the current communicator's parent. If the current communicator has no
+// parent, the message is sent to its receiver as specified when the
+// message was created.
+//
+// If the message Dir is Up and SetNext is called, the message is sent to
+// the receiver specified in the SetNext call.
+//
+// If the message Dir is down, the message retraces its upward path sending
+// itself to each previous owner until it reaches its original sender.
 func (m *Message) SendOn() {
   if !m.hasDest {
     m.autoSetNext()
@@ -135,7 +149,11 @@ func (m *Message) SendOn() {
   next.Receive(m)
 }
 
-// SetNext 
+// SetNext allows manual specification of the next message receiver.
+//
+// If the message Dir is Down, calls to SetNext do nothing, and the message
+// will continue retrace its previous path with each SendOn invocation as
+// if SetNext had not been called.
 func (m *Message) SetNext(dest Communicator) {
   if m.Dir == Down {
     return

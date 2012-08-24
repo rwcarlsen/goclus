@@ -1,4 +1,5 @@
 
+// Package books is an agent and transaction recording service for simulations.
 package books
 
 import (
