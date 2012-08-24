@@ -90,35 +90,43 @@ func (e *Engine) RegisterStart(starters ...Starter) {
 }
 
 
-func (e *Engine) RegisterAll(a Agent) {
+func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
   switch t := a.(type) {
     case Ticker:
       e.RegisterTick(t)
+      ifaces = append(ifaces, "Ticker")
   }
   switch t := a.(type) {
     case Tocker:
       e.RegisterTock(t)
+      ifaces = append(ifaces, "Tocker")
   }
   switch t := a.(type) {
     case Resolver:
       e.RegisterResolve(t)
+      ifaces = append(ifaces, "Resolver")
   }
   switch t := a.(type) {
     case Starter:
       e.RegisterStart(t)
+      ifaces = append(ifaces, "Starter")
   }
   switch t := a.(type) {
     case Ender:
       e.RegisterEnd(t)
+      ifaces = append(ifaces, "Ender")
   }
   switch t := a.(type) {
     case msg.Listener:
       e.RegisterMsgNotify(t)
+      ifaces = append(ifaces, "msg.Listener")
   }
   switch t := a.(type) {
     case trans.Listener:
       e.RegisterTransNotify(t)
+      ifaces = append(ifaces, "trans.Listener")
   }
+  return
 }
 
 func (e *Engine) RegisterTick(ts ...Ticker) {
