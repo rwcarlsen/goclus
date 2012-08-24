@@ -7,11 +7,12 @@ import (
   "github.com/rwcarlsen/goclus/rsrc"
 )
 
-type transType int
+// TransType indicates a transaction's type (e.g. offer or request).
+type TransType int
 
 const (
   // Offer indicates a removal of resources from the transaction supplier.
-  Offer transType = iota
+  Offer TransType = iota
   // Request indicates addition of resources to the transaction requester.
   Request
 )
@@ -62,7 +63,7 @@ type Requester interface {
 // transaction is returned to the supplier who then (generally) calls the
 // Approve method to initiate the resource transfer.
 type Transaction struct {
-  tp transType
+  tp TransType
   res rsrc.Resource
   Sup Supplier
   Req Requester
@@ -104,7 +105,7 @@ func (t *Transaction) MatchWith(other *Transaction) error {
 }
 
 // Type returns the type (Offer or Request) of the transaction.
-func (t *Transaction) Type() transType {
+func (t *Transaction) Type() TransType {
   return t.tp
 }
 

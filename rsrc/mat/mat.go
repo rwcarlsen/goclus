@@ -50,15 +50,18 @@ func (m *Material) ExtractMass(mass float64) (*Material, error) {
   return cut, nil
 }
 
-// ExtractComp is not implemented yet - it is totally wront/broken
+// ExtractComp creates a new material of mass with composition cmp by
+// extracting the corresponding amounts from this material.
+//
+// Returns an error only if the extraction would result in a negative mass
+// remaining in the material.
 func (m *Material) ExtractComp(mass float64, cmp *comp.Composition) (*Material, error) {
-  if mass > m.mass {
-    return nil, errors.New("rsrc: extraction amount too large")
+  m.cmp, err = m.cmp.Mix(-m.mass / mass, cmp)
+  if err != nil {
+    return nil, err
   }
 
-  cut := New(mass, m.cmp)
-  m.mass -= mass
-  return cut, nil
+  return New(mass, cmp), nil
 }
 
 func (m *Material) Absorb(other *Material) {

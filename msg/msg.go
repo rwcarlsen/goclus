@@ -106,7 +106,7 @@ func (m *Message) Sender() Communicator {
 }
 
 // Receiver returns the original intended recipient of this message.
-func (m *Message) Receiver() *Message {
+func (m *Message) Receiver() Communicator {
   return m.receiver
 }
 
