@@ -1,4 +1,5 @@
 
+// Package mat provides a nuclear-material resource.
 package mat
 
 import (
@@ -7,11 +8,14 @@ import (
   "github.com/rwcarlsen/goclus/rsrc"
 )
 
+// Material is a resource for tracking, and manipulating nuclear materials.
 type Material struct {
   cmp *comp.Composition
   mass float64
 }
 
+// New creates and returns a new material of the given mass with
+// composition cmp.
 func New(mass float64, cmp *comp.Composition) *Material {
   return &Material{
     cmp: cmp,
@@ -40,6 +44,11 @@ func (m *Material) Clone() rsrc.Resource {
   return &clone
 }
 
+// ExtractMass creates and returns a new, compositionally identical
+// material of the given mass.
+//
+// An error is returned if the extraction would result in a negative mass
+// remaining in the material.
 func (m *Material) ExtractMass(mass float64) (*Material, error) {
   if mass > m.mass {
     return nil, errors.New("rsrc: extraction amount too large")
@@ -50,10 +59,10 @@ func (m *Material) ExtractMass(mass float64) (*Material, error) {
   return cut, nil
 }
 
-// ExtractComp creates a new material of mass with composition cmp by
-// extracting the corresponding amounts from this material.
+// ExtractComp creates and returns a new material of the given mass with composition
+// cmp by extracting the corresponding amounts from this material.
 //
-// Returns an error only if the extraction would result in a negative mass
+// An error is returned if the extraction would result in a negative mass
 // remaining in the material.
 func (m *Material) ExtractComp(mass float64, cmp *comp.Composition) (*Material, error) {
   m.cmp, err = m.cmp.Mix(-m.mass / mass, cmp)
@@ -64,6 +73,7 @@ func (m *Material) ExtractComp(mass float64, cmp *comp.Composition) (*Material, 
   return New(mass, cmp), nil
 }
 
+// Absorb adds/combines other into the material.
 func (m *Material) Absorb(other *Material) {
   m.cmp, _ = m.cmp.Mix(m.mass / other.mass, other.cmp)
   m.mass += other.mass
