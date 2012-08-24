@@ -25,7 +25,7 @@ func (m *Mkt) Id() string {
 }
 
 func (m *Mkt) Receive(mg *msg.Message) {
-  if mg.Trans.Type == trans.Offer {
+  if mg.Trans.Type() == trans.Offer {
     m.offers = append(m.offers, mg)
   } else {
     m.requests = append(m.requests, mg)
