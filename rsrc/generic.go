@@ -7,7 +7,6 @@ type generic struct {
 
 // NewGeneric returns a new generic resource initialized with qty of the given
 // units.
-//
 // Note that the specified units will be immutable.
 func NewGeneric(qty float64, units string) *generic {
 	return &generic{

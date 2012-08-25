@@ -23,7 +23,6 @@ type Group []*Message
 
 // Communicator is implemented by all agents that require the ability to
 // communicate with other simulation agents.
-//
 // Note that this method should generally not be invoked directly;
 // inter-agent message passing should be achieved via a message's SendOn
 // method.
@@ -42,7 +41,6 @@ type Listener interface {
 // ListenAll adds l to a global list of agents that receive notifications
 // for every message passed between any two agents (usually used by "special"
 // agents e.g. book-keeper, etc.).
-//
 // These notifications are sent every time a message SendOn method is
 // called - before the receiver actually receives the message. Simulation
 // execution continues only after l's MsgNotify method returns.
@@ -123,8 +121,7 @@ func (m *Message) Clone() *Message {
 // to the current communicator's parent. If the current communicator has no
 // parent, the message is sent to its receiver as specified when the
 // message was created.
-//
-// If the message Dir is Up and SetNext is called, the message is sent to
+// If the message Dir is Up and SetNext has been called, the message is sent to
 // the receiver specified in the SetNext call.
 //
 // If the message Dir is down, the message retraces its upward path sending
@@ -149,7 +146,6 @@ func (m *Message) SendOn() {
 }
 
 // SetNext allows manual specification of the next message receiver.
-//
 // If the message Dir is Down, calls to SetNext do nothing, and the message
 // will continue retrace its previous path with each SendOn invocation as
 // if SetNext had not been called.

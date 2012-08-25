@@ -28,7 +28,6 @@ type Listener interface {
 // ListenAll adds l to a global list of agents that receive notifications
 // for every approved transaction (usually used by "special" agents e.g.
 // book-keeper, etc.).
-//
 // These notifications are sent when the Approve method is called - 
 // before Approve returns and directly after the resource transfer.
 // Simulation execution continues only after l's TransNotify method returns.
@@ -56,7 +55,6 @@ type Requester interface {
 
 // Transaction allows agents to inform each other about desired resource
 // exchange.
-//
 // Partial transactions (offers/requests) are generally sent as part of a
 // message and matched by transaction-matching agents. The matched
 // transaction is returned to the supplier who then (generally) calls the
@@ -110,7 +108,6 @@ func (t *Transaction) Type() TransType {
 
 // Approve executes the resource transfer: resources are removed from the
 // supplier and given to the requester.
-//
 // All transaction notification listeners are also notified immediately
 // following the resource transfer before Approve returns.
 func (t *Transaction) Approve() {

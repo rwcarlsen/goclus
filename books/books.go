@@ -34,7 +34,6 @@ type agentData struct {
 
 // Books is an agent that records participating-agent and transaction activity
 // during a simulation.
-//
 // Note that the Books agent is intended to be registered with a sim.Engine
 // for services for which it implements appropriate interfaces. The public
 // methods are NOT intended to be invoked by anything other than sim.Engine

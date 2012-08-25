@@ -16,7 +16,6 @@ func (m Map) Clone() Map {
 
 // Composition is an immutable representation of nuclear material
 // composition.
-//
 // Assigning compositions to new variables is cheap, the internally
 // maintained composition information is not duplicated.  If a copy is
 // neaded, use the Clone method.
@@ -25,7 +24,6 @@ type Composition struct {
 }
 
 // New creates a new composition from m.
-//
 // Note that any modifications to m after it has been passed to a
 // composition will be visible to the composition object.
 func New(m Map) *Composition {
@@ -39,7 +37,6 @@ func (c *Composition) Clone() *Composition {
 
 // Mix creates a new composition by combining the composition and other where
 // ratio is the quantity of the composition divided by the quantity of other.
-//
 // A negative ratio implies subtracting/removal of other from the composition.
 func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, error) {
 	if ratio == 0 {

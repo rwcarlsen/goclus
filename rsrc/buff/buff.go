@@ -26,7 +26,6 @@ func (b *Buffer) Capacity() float64 {
 }
 
 // SetCapacity sets the maximum quantity this store can hold.
-//
 // Returns an error if the new capacity is lower then the quantity currently
 // residing in the buffer.
 func (b *Buffer) SetCapacity(capacity float64) error {
@@ -57,7 +56,6 @@ func (b *Buffer) Space() float64 {
 }
 
 // PopQty pops and returns the specified quantity of resources from the buffer.
-//
 // Resources are split if necessary in order to pop the exact quantity.
 // Resources are retrieved in the order they were pushed (first in - first
 // out).
@@ -85,7 +83,6 @@ func (b *Buffer) PopQty(qty float64) ([]rsrc.Resource, error) {
 }
 
 // PopQty pops and returns the specified number of resources from the buffer.
-//
 // Resources are not split. Resources are retrieved in the order they were
 // pushed (first in - first out).
 func (b *Buffer) PopN(num int) ([]rsrc.Resource, error) {
@@ -98,7 +95,6 @@ func (b *Buffer) PopN(num int) ([]rsrc.Resource, error) {
 }
 
 // PopOne pops and returns one resource object from the store.
-//
 // Resources are not split. Resources are retrieved in the order they were
 // pushed (first in - first out).
 func (b *Buffer) PopOne() (rsrc.Resource, error) {
@@ -111,10 +107,8 @@ func (b *Buffer) PopOne() (rsrc.Resource, error) {
 }
 
 // Push pushes one or more resource objects into the buffer.
-//
 // If the push would result in the buffer being over capacity, no resources are
 // pushed, and an error is returned.
-//
 // Resource objects are never combined in the buffer.
 func (b *Buffer) Push(rs ...rsrc.Resource) error {
 	var tot float64

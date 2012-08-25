@@ -15,7 +15,6 @@ type Material struct {
 
 // New creates and returns a new material of the given qty with
 // composition cmp.
-//
 // Note that the specified units will be immutable.
 func New(qty float64, cmp *comp.Composition) *Material {
 	return &Material{
@@ -52,7 +51,6 @@ func (m *Material) Clone() rsrc.Resource {
 
 // ExtractMass creates and returns a new, compositionally identical
 // material of the given qty.
-//
 // An error is returned if the extraction would result in a negative qty
 // remaining in the material.
 func (m *Material) ExtractMass(qty float64) (*Material, error) {
@@ -67,7 +65,6 @@ func (m *Material) ExtractMass(qty float64) (*Material, error) {
 
 // ExtractComp creates and returns a new material of the given qty with composition
 // cmp by extracting the corresponding amounts from this material.
-//
 // An error is returned if the extraction would result in a negative qty
 // remaining in the material.
 func (m *Material) ExtractComp(qty float64, cmp *comp.Composition) (*Material, error) {
