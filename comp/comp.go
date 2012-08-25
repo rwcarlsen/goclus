@@ -7,7 +7,7 @@ import "errors"
 type Map map[int]float64
 
 // Clone creates and returns a copy of the map.
-func (m *Map) Clone() Map {
+func (m Map) Clone() Map {
   c := Map{}
   for key, val := range m {
     c[key] = val
