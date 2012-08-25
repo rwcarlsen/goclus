@@ -110,7 +110,7 @@ func (f *Fac) createRes(qty float64) {
     return
   }
   r := rsrc.NewGeneric(qty, f.OutUnits)
-  f.outBuff.PushOne(r)
+  f.outBuff.Push(r)
 }
 
 func (f *Fac) convertRes() {
@@ -128,14 +128,14 @@ func (f *Fac) convertRes() {
   rs, err := f.inBuff.PopQty(qty)
   check(err)
   if f.InUnits == f.OutUnits {
-    f.outBuff.PushAll(rs)
+    f.outBuff.Push(rs...)
   } else {
     f.createRes(qty)
   }
 }
 
 func (f *Fac) Receive(m *msg.Message) {
-  if m.Sender == f {
+  if m.Sender() == f {
     f.queuedOrders = append(f.queuedOrders, m)
   }
 }
@@ -149,7 +149,7 @@ func (f *Fac) RemoveResource(tran *trans.Transaction) {
 
 func (f *Fac) AddResource(tran *trans.Transaction) {
   fmt.Println(f.id, " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
-  err := f.inBuff.PushAll(tran.Manifest)
+  err := f.inBuff.Push(tran.Manifest...)
   check(err)
 }
 

@@ -1,35 +1,44 @@
 
 package rsrc
 
-type Generic struct {
+type generic struct {
   units string
   qty float64
 }
 
-func NewGeneric(qty float64, units string) *Generic {
-  return &Generic{
+// NewGeneric returns a new generic resource initialized with qty of the given
+// units.
+//
+// Note that the specified units will be immutable.
+func NewGeneric(qty float64, units string) *generic {
+  return &generic{
     units: units,
     qty: qty,
   }
 }
 
-func (g *Generic) Type() string {
+// Type returns "Generic" for all generic resources.
+func (g *generic) Type() string {
   return "Generic"
 }
 
-func (g *Generic) Units() string {
+// Units returns the units specified at creation.
+func (g *generic) Units() string {
   return g.units
 }
 
-func (g *Generic) Qty() float64 {
+// Qty returns the quantity the resource holds of [units].
+func (g *generic) Qty() float64 {
   return g.qty
 }
 
-func (g *Generic) SetQty(qty float64) {
+// SetQty changes the resources quantity to qty.
+func (g *generic) SetQty(qty float64) {
   g.qty = qty
 }
 
-func (g *Generic) Clone() Resource {
+// Clone returns a deep-copy of the generic resource.
+func (g *generic) Clone() Resource {
   clone := *g
   return &clone
 }

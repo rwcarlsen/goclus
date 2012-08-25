@@ -1,4 +1,5 @@
 
+// Package books is an agent and transaction recording service for simulations.
 package books
 
 import (
@@ -11,7 +12,9 @@ import (
   "github.com/rwcarlsen/goclus/sim"
 )
 
-type TransData struct {
+// transData holds simulation transaction information in an
+// output-write-ready format.
+type transData struct {
   Id int
   TransId int
   SupId int
@@ -21,13 +24,22 @@ type TransData struct {
   Units string
 }
 
-type AgentData struct {
+// transData holds simulation agent information in an
+// output-write-ready format.
+type agentData struct {
   Id int
   Type string
   Born time.Time
   ParentId int
 }
 
+// Books is an agent that records participating-agent and transaction activity
+// during a simulation.
+//
+// Note that the Books agent is intended to be registered with a sim.Engine
+// for services for which it implements appropriate interfaces. The public
+// methods are NOT intended to be invoked by anything other than sim.Engine
+// during the course of a simulation.
 type Books struct {
   id string
   eng *sim.Engine
@@ -36,9 +48,9 @@ type Books struct {
   transIn chan *trans.Transaction
   msgIn chan *msg.Message
   miscIn chan interface{}
-  tranDat []*TransData
-  AgentDat map[interface{}]*AgentData
-  MiscDat []interface{}
+  tranDat []*transData
+  agentDat map[interface{}]*agentData
+  miscDat []interface{}
 }
 
 func (b *Books) SetId(id string) {
@@ -49,6 +61,8 @@ func (b *Books) Id() string {
   return b.id
 }
 
+// Start spins off a goroutine that book-keeps all transaction and agent
+// information as provided via MsgNotify and TransNotify.
 func (b *Books) Start(e *sim.Engine) {
   b.done = make(chan bool)
   b.transIn = make(chan *trans.Transaction)
@@ -62,7 +76,7 @@ func (b *Books) Start(e *sim.Engine) {
           b.regComm(m.PrevOwner)
           b.regComm(m.Owner)
         case i := <-b.miscIn:
-          b.MiscDat = append(b.MiscDat, i)
+          b.miscDat = append(b.miscDat, i)
         case <-b.done:
           return
       }
@@ -70,15 +84,22 @@ func (b *Books) Start(e *sim.Engine) {
   }()
 }
 
+// End allows final recording operations to take place before the
+// simulation closes; most notably, writing remaining collected information
+// to an output file.
 func (b *Books) End(e *sim.Engine) {
   b.done<-true
   b.saveData()
 }
 
+// MsgNotify is used to collect information about agents participating in a
+// simulation from the sim.Engine.
 func (b *Books) MsgNotify(m *msg.Message) {
   b.msgIn<-m
 }
 
+// TransNotify is used to collect information about matched, executed
+// transactions as they occur through a simulation from the sim.Engine.
 func (b *Books) TransNotify(t *trans.Transaction) {
   b.transIn<-t
 }
@@ -95,11 +116,11 @@ func (b *Books) regTrans(t *trans.Transaction) {
 
   for _, r := range t.Manifest {
     tp := reflect.Indirect(reflect.ValueOf(r)).Type()
-    tdat := &TransData{
+    tdat := &transData{
       Id: id,
       TransId: tid,
-      SupId: b.AgentDat[t.Sup].Id,
-      ReqId: b.AgentDat[t.Req].Id,
+      SupId: b.agentDat[t.Sup].Id,
+      ReqId: b.agentDat[t.Req].Id,
       ResType: tp.PkgPath() + "." + tp.Name(),
       Qty: r.Qty(),
       Units: r.Units(),
@@ -114,21 +135,21 @@ func (b *Books) regComm(c msg.Communicator) {
   // this comes last to prevent infinite looping
   if par := c.Parent(); par != nil {
     b.regComm(par)
-    b.AgentDat[c].ParentId = b.AgentDat[par].Id
+    b.agentDat[c].ParentId = b.agentDat[par].Id
   }
 }
 
 func (b *Books) regAgent(a interface{}) {
-  if b.AgentDat == nil {
-    b.AgentDat = map[interface{}]*AgentData{}
-  } else if _, ok := b.AgentDat[a]; ok {
+  if b.agentDat == nil {
+    b.agentDat = map[interface{}]*agentData{}
+  } else if _, ok := b.agentDat[a]; ok {
     return
   }
 
   b.aId++
   tp := reflect.Indirect(reflect.ValueOf(a)).Type()
 
-  b.AgentDat[a] = &AgentData{
+  b.agentDat[a] = &agentData{
     Id: b.aId,
     Type: tp.PkgPath() + "." + tp.Name(),
     Born: b.getTime(),
@@ -137,8 +158,8 @@ func (b *Books) regAgent(a interface{}) {
 }
 
 func (b *Books) saveData() error {
-  agents := []*AgentData{}
-  for _, val := range b.AgentDat {
+  agents := []*agentData{}
+  for _, val := range b.agentDat {
     agents = append(agents, val)
   }
 

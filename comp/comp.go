@@ -1,33 +1,45 @@
 
+// Package comp contains types for manipulation of nuclear material compositions.
 package comp
 
 import "errors"
 
 type Map map[int]float64
 
-func cloneMap(m Map) Map {
-  clone := Map{}
+// Clone creates and returns a copy of the map.
+func (m Map) Clone() Map {
+  c := Map{}
   for key, val := range m {
-    clone[key] = val
+    c[key] = val
   }
-  return clone
+  return c
 }
 
-// Composition is an immutable representation of nuclear material composition
+// Composition is an immutable representation of nuclear material
+// composition.
+//
+// Assigning compositions to new variables is cheap, the internally
+// maintained composition information is not duplicated.  If a copy is
+// neaded, use the Clone method.
 type Composition struct {
   comp Map
 }
 
+// New creates a new composition from m.
+//
+// Note that any modifications to m after it has been passed to a
+// composition will be visible to the composition object.
 func New(m Map) *Composition {
   return &Composition{comp: m}
 }
 
+// Clone returns a copy of the composition.
 func (c *Composition) Clone() *Composition {
-  return &Composition{comp: cloneMap(c.comp)}
+  return &Composition{comp: c.comp.Clone()}
 }
 
 // Mix creates a new composition by combining the composition and other where
-// ratio is qty of the composition divided by the qty of other.
+// ratio is the quantity of the composition divided by the quantity of other.
 //
 // A negative ratio implies subtracting/removal of other from the composition.
 func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, error) {

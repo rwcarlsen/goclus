@@ -38,7 +38,7 @@ func (e *Econ) MsgNotify(m *msg.Message) {
   }
 
   qty = mg.Trans.Resource().Qty()
-  if mg.Trans.Type == trans.Offer {
+  if mg.Trans.Type() == trans.Offer {
     e.off[m.Owner][e.tm] += qty
   } else {
     e.req[m.Owner][e.tm] += qty
