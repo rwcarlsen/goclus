@@ -35,6 +35,14 @@ func (c *Composition) Clone() *Composition {
 	return &Composition{comp: c.comp.Clone()}
 }
 
+func (c *Composition) norm() float64 {
+  var tot float64 = 0
+  for _, val := range c.comp {
+    tot += val
+  }
+  return tot
+}
+
 // Mix creates a new composition by combining the composition and other where
 // ratio is the quantity of the composition divided by the quantity of other.
 // A negative ratio implies subtracting/removal of other from the composition.
@@ -46,16 +54,16 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	mixed := c.Clone()
 	if ratio > 0 {
 		for key, qty := range other.comp {
-			mixed.comp[key] *= ratio
-			mixed.comp[key] += qty
+			mixed.comp[key] *= ratio / mixed.norm()
+			mixed.comp[key] += qty / other.norm()
 		}
 	} else {
 		for key, qty := range other.comp {
-			mixed.comp[key] *= -1 * ratio
+			mixed.comp[key] *= -1 * ratio / mixed.norm()
 			if mixed.comp[key] < qty {
 				return nil, errors.New("comp: Mix ratio results in negative component")
 			}
-			mixed.comp[key] -= qty
+			mixed.comp[key] -= qty / other.norm()
 		}
 	}
 	return mixed, nil
