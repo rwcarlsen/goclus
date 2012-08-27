@@ -21,26 +21,23 @@ func (m Map) Clone() Map {
 // neaded, use the Clone method.
 type Composition struct {
 	comp Map
+  norm float64
 }
 
 // New creates a new composition from m.
 // Note that any modifications to m after it has been passed to a
 // composition will be visible to the composition object.
 func New(m Map) *Composition {
-	return &Composition{comp: m}
+  var tot float64 = 0
+  for _, val := range m {
+    tot += val
+  }
+  return &Composition{comp: m, norm: 1 / tot}
 }
 
 // Clone returns a copy of the composition.
 func (c *Composition) Clone() *Composition {
-	return &Composition{comp: c.comp.Clone()}
-}
-
-func (c *Composition) norm() float64 {
-  var tot float64 = 0
-  for _, val := range c.comp {
-    tot += val
-  }
-  return tot
+  return &Composition{comp: c.comp.Clone(), norm: c.norm}
 }
 
 // Mix creates a new composition by combining the composition and other where
@@ -54,16 +51,16 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	mixed := c.Clone()
 	if ratio > 0 {
 		for key, qty := range other.comp {
-			mixed.comp[key] *= ratio / mixed.norm()
-			mixed.comp[key] += qty / other.norm()
+			mixed.comp[key] *= ratio * mixed.norm
+			mixed.comp[key] += qty * other.norm
 		}
 	} else {
 		for key, qty := range other.comp {
-			mixed.comp[key] *= -1 * ratio / mixed.norm()
+			mixed.comp[key] *= -1 * ratio * mixed.norm
 			if mixed.comp[key] < qty {
 				return nil, errors.New("comp: Mix ratio results in negative component")
 			}
-			mixed.comp[key] -= qty / other.norm()
+			mixed.comp[key] -= qty * other.norm
 		}
 	}
 	return mixed, nil
