@@ -3,11 +3,16 @@ package mat
 
 import (
   "testing"
-  "github.com/rwcarlsen/goclus/assert"
+  "github.com/rwcarlsen/goclus/util/assert"
   "github.com/rwcarlsen/goclus/comp"
 )
 
-const qty1 float64 = 5
+const (
+  zero float64 = 0
+  qty1 float64 = 5
+  qty2 float64 = 4
+  qty3 float64 = 2.31
+)
 
 func mat1() *Material {
   cm := comp.Map{92235:1.1, 92238:3.9}
@@ -16,17 +21,15 @@ func mat1() *Material {
 }
 
 func mat2() *Material {
-  qty := 4.0
   cm := comp.Map{92235:1}
   cmp := comp.New(cm)
-  return New(qty, cmp)
+  return New(qty2, cmp)
 }
 
 func mat3() *Material {
-  qty := 2.31
   cm := comp.Map{92238:2.3, 94239:0.01}
   cmp := comp.New(cm)
-  return New(qty, cmp)
+  return New(qty3, cmp)
 }
 
 func TestType(t *testing.T) {
@@ -105,5 +108,13 @@ func TestExtractComp_Bad(t *testing.T) {
 }
 
 func TestAbsorb(t *testing.T) {
+  m1 := mat1()
+  cmp := m1.Comp
+  m3 := mat3()
+  m1.Absorb(m3)
+
+  assert.Eq(t, m1.Qty(), qty1 + qty3)
+  assert.Eq(t, m3.Qty(), zero)
+  assert.Ne(t, m1.Comp, cmp)
 }
 

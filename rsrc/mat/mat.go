@@ -88,6 +88,9 @@ func (m *Material) ExtractComp(qty float64, comp *comp.Composition) (*Material, 
 
 // Absorb adds/combines other into the material.
 func (m *Material) Absorb(other *Material) {
-	m.Comp, _ = m.Comp.Mix(m.qty/other.qty, other.Comp)
+  if other.Comp != m.Comp {
+    m.Comp, _ = m.Comp.Mix(m.qty/other.qty, other.Comp)
+  }
 	m.qty += other.qty
+  other.qty = 0
 }
