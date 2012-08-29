@@ -70,6 +70,12 @@ func (m *Material) ExtractMass(qty float64) (*Material, error) {
 // Comp by extracting the corresponding amounts from this material.
 // An error is returned if the extraction would result in a negative qty
 // remaining in the material.
+//
+// A material that results from removing rfrac of U235 and U238 could be
+// obtained as follows:
+//
+//     c, frac := m1.Comp.Partial(92235)
+//     extracted, err := m1.ExtractComp(m1.Qty() * frac * rfrac, c)
 func (m *Material) ExtractComp(qty float64, comp *comp.Composition) (*Material, error) {
 	newComp, err := m.Comp.Mix(-m.qty/qty, comp)
 	if err != nil {

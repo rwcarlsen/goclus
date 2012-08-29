@@ -57,6 +57,19 @@ func TestCompClone(t *testing.T) {
 func TestNew(t *testing.T) {
 }
 
+func TestPartialMix(t *testing.T) {
+  c := New(Map{92235: .1, 92238: .4, 94239: .5})
+  part, frac := c.Partial(92235, 92238)
+  rfrac := .5
+  t.Log(part, ", ", frac)
+  thinned, err := c.Mix(-1.0/(frac*rfrac), part)
+  if err != nil {
+    t.Errorf("error: %v", err)
+  } else if thinned.comp[94239] != 2.0/3.0 {
+    t.Errorf("94239 want %v got %v", 2.0/3.0, thinned.comp[94239])
+  }
+}
+
 func TestMix(t *testing.T) {
   for i, test := range tests {
     c1 := New(test.m1)

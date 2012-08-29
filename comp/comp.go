@@ -2,6 +2,7 @@
 package comp
 
 import "errors"
+import "math"
 
 type Map map[int]float64
 
@@ -53,6 +54,26 @@ func (c *Composition) Clone() *Composition {
   return &Composition{comp: c.comp.Clone()}
 }
 
+// Partial returns a comp map from the composition containing only the
+// listed isotopes in ratios as they occur in the composition.  frac is the
+// total fraction of the composition that is composed of the listed
+// isotopes.
+//
+// A composition that results from removing rfrac of U235 and U238 could be
+// obtained as follows:
+//
+//    part, frac := c1.Partial(92235, 92238)
+//    thinned, err := c1.Mix(-1/(frac*rfrac), part)
+func (c *Composition) Partial(isos ...int) (part *Composition, frac float64) {
+  m := Map{}
+  for _, iso := range isos {
+    qty := c.comp[iso]
+    frac += qty
+    m[iso] = qty
+  }
+  return New(m), frac
+}
+
 // Mix creates a new composition by combining the composition and other where
 // ratio is the quantity of the composition divided by the quantity of other.
 // A negative ratio implies subtracting/removal of other from the composition.
@@ -62,14 +83,16 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	}
 
 	mcomp := c.comp.Clone()
+  for key, _ := range mcomp {
+    mcomp[key] *= math.Abs(ratio)
+  }
+
 	if ratio > 0 {
 		for key, qty := range other.comp {
-			mcomp[key] *= ratio
 			mcomp[key] += qty
 		}
 	} else {
 		for key, qty := range other.comp {
-			mcomp[key] *= -ratio
 			if mcomp[key] < qty {
 				return nil, errors.New("comp: Mix ratio results in negative component")
 			}
