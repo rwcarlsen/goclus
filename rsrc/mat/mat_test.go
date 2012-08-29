@@ -15,19 +15,19 @@ const (
 )
 
 func mat1() *Material {
-  cm := comp.Map{92235:1.1, 92238:3.9}
+  cm := comp.Map{922350:1.1, 922380:3.9}
   cmp := comp.New(cm)
   return New(qty1, cmp)
 }
 
 func mat2() *Material {
-  cm := comp.Map{92235:1}
+  cm := comp.Map{922350:1}
   cmp := comp.New(cm)
   return New(qty2, cmp)
 }
 
 func mat3() *Material {
-  cm := comp.Map{92238:2.3, 94239:0.01}
+  cm := comp.Map{922380:2.3, 942390:0.01}
   cmp := comp.New(cm)
   return New(qty3, cmp)
 }

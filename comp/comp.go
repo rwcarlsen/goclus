@@ -3,8 +3,9 @@ package comp
 
 import "errors"
 import "math"
+import "github.com/rwcarlsen/goclus/isos"
 
-type Map map[int]float64
+type Map map[isos.Iso]float64
 
 // Clone creates and returns a copy of the map.
 func (m Map) Clone() Map {
@@ -64,7 +65,7 @@ func (c *Composition) Clone() *Composition {
 //
 //    part, frac := c1.Partial(92235, 92238)
 //    thinned, err := c1.Mix(-1/(frac*rfrac), part)
-func (c *Composition) Partial(isos ...int) (part *Composition, frac float64) {
+func (c *Composition) Partial(isos ...isos.Iso) (part *Composition, frac float64) {
   m := Map{}
   for _, iso := range isos {
     qty := c.comp[iso]
