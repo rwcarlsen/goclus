@@ -56,8 +56,8 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 		}
 	} else {
 		for key, qty := range other.comp {
-			mcomp[key] *= -1 * ratio * c.norm
-			if mcomp[key] < qty {
+			mcomp[key] *= -ratio * c.norm
+			if mcomp[key] < qty * other.norm {
 				return nil, errors.New("comp: Mix ratio results in negative component")
 			}
 			mcomp[key] -= qty * other.norm
