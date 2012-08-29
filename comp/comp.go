@@ -65,3 +65,18 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	}
 	return New(mcomp), nil
 }
+
+func (c *Composition) Norm() float64 {
+  return c.norm
+}
+
+func (c *Composition) Normalize() {
+  if c.norm == 1 {
+    return
+  }
+
+  for iso, _ := range c.comp {
+    c.comp[iso] *= c.norm
+  }
+  c.norm = 1
+}
