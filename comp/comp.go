@@ -14,6 +14,17 @@ func (m Map) Clone() Map {
 	return c
 }
 
+// normalize makes the sum of map's elements add to zero.
+func (m Map) normalize() {
+  var tot float64 = 0
+  for _, val := range m {
+    tot += val
+  }
+  for iso, _ := range m {
+    m[iso] /= tot
+  }
+}
+
 // Composition is an immutable representation of nuclear material
 // composition.
 // Assigning compositions to new variables is cheap, the internally
@@ -21,7 +32,6 @@ func (m Map) Clone() Map {
 // neaded, use the Clone method.
 type Composition struct {
 	comp Map
-  norm float64
 }
 
 // New creates a new composition from m.
@@ -32,12 +42,15 @@ func New(m Map) *Composition {
   for _, val := range m {
     tot += val
   }
-  return &Composition{comp: m, norm: 1 / tot}
+
+  comp := m.Clone()
+  comp.normalize()
+  return &Composition{comp: comp}
 }
 
 // Clone returns a copy of the composition.
 func (c *Composition) Clone() *Composition {
-  return &Composition{comp: c.comp.Clone(), norm: c.norm}
+  return &Composition{comp: c.comp.Clone()}
 }
 
 // Mix creates a new composition by combining the composition and other where
@@ -51,32 +64,17 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	mcomp := c.comp.Clone()
 	if ratio > 0 {
 		for key, qty := range other.comp {
-			mcomp[key] *= ratio * c.norm
-			mcomp[key] += qty * other.norm
+			mcomp[key] *= ratio
+			mcomp[key] += qty
 		}
 	} else {
 		for key, qty := range other.comp {
-			mcomp[key] *= -ratio * c.norm
-			if mcomp[key] < qty * other.norm {
+			mcomp[key] *= -ratio
+			if mcomp[key] < qty {
 				return nil, errors.New("comp: Mix ratio results in negative component")
 			}
-			mcomp[key] -= qty * other.norm
+			mcomp[key] -= qty
 		}
 	}
 	return New(mcomp), nil
-}
-
-func (c *Composition) Norm() float64 {
-  return c.norm
-}
-
-func (c *Composition) Normalize() {
-  if c.norm == 1 {
-    return
-  }
-
-  for iso, _ := range c.comp {
-    c.comp[iso] *= c.norm
-  }
-  c.norm = 1
 }

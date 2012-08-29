@@ -2,8 +2,8 @@
 package comp
 
 import (
-  "testing"
   "math"
+  "testing"
 )
 
 var tests = []struct{
@@ -57,37 +57,42 @@ func TestCompClone(t *testing.T) {
 func TestNew(t *testing.T) {
 }
 
-func TestNormalize(t *testing.T) {
-}
-
 func TestMix(t *testing.T) {
   for i, test := range tests {
     c1 := New(test.m1)
     c2 := New(test.m2)
-    var c3 *Composition
-    if test.m3 != nil {
-      c3 = New(test.m3)
-    }
-
     c4, err := c1.Mix(test.ratio, c2)
-    if c3 != nil && err != nil {
+
+    test.m3.normalize()
+    want := test.m3
+
+    if want != nil && err != nil {
       t.Fatalf("test %v threw error: %v, but expected nil.", i+1, err)
-    } else if c3 == nil && err == nil {
+    } else if want == nil && err == nil {
       t.Fatalf("test %v should return non-nil error, but didn't", i+1)
-    } else if c3 == nil && err != nil {
+    } else if want == nil && err != nil {
       return
     }
 
-    c3.Normalize()
-    c4.Normalize()
-    want := c3.comp
     got := c4.comp
 
     for iso, v := range want {
-      if v != math.Nextafter(got[iso], v) {
-        t.Errorf("test %v failed for iso=%v: want %v, got %v", i+1, iso, v, got[iso])
+      if floatNe(v, got[iso]) {
+        t.Errorf("test %v failed on iso=%v: want %v, got %v", i+1, iso, v, got[iso])
       }
     }
   }
+}
+
+func floatEq(a, b float64) bool {
+  absTol := 0.0
+  relTol := 1e-10
+  return math.Abs(a - b) <= (absTol + relTol * math.Abs(b))
+}
+
+func floatNe(a, b float64) bool {
+  absTol := 0.0
+  relTol := 1e-10
+  return math.Abs(a - b) > (absTol + relTol * math.Abs(b))
 }
 
