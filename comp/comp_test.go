@@ -12,6 +12,11 @@ var tests = []struct{
   // m3 = expected[m1.Mix(ratio, m2)]
 }{
   {
+    ratio: 0,
+    m1: Map{92235: 1},
+    m2: Map{92235: 1, 92238: 2},
+    m3: Map{92235: 1, 92238: 2},
+  },{
     ratio: 1,
     m1: Map{92235: 1},
     m2: Map{92238: 2},

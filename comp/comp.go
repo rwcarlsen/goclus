@@ -44,7 +44,7 @@ func (c *Composition) Clone() *Composition {
 // ratio is the quantity of the composition divided by the quantity of other.
 // A negative ratio implies subtracting/removal of other from the composition.
 func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, error) {
-	if ratio == 0 {
+	if ratio == 0 || c == other {
 		return other, nil
 	}
 

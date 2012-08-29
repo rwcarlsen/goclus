@@ -71,10 +71,6 @@ func (m *Material) ExtractMass(qty float64) (*Material, error) {
 // An error is returned if the extraction would result in a negative qty
 // remaining in the material.
 func (m *Material) ExtractComp(qty float64, comp *comp.Composition) (*Material, error) {
-	if qty > m.qty {
-		return nil, errors.New("rsrc: extraction amount too large")
-	}
-
 	newComp, err := m.Comp.Mix(-m.qty/qty, comp)
 	if err != nil {
 		return nil, err
