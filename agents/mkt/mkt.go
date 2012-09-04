@@ -8,6 +8,7 @@ import (
 )
 
 type Mkt struct {
+  msg.Commy
 	id       string
 	Shuffle  bool
 	Seed     int64
@@ -29,13 +30,6 @@ func (m *Mkt) Receive(mg *msg.Message) {
 	} else {
 		m.requests = append(m.requests, mg)
 	}
-}
-
-func (m *Mkt) Parent() msg.Communicator {
-	return nil
-}
-
-func (f *Mkt) SetParent(par msg.Communicator) {
 }
 
 func (m *Mkt) Resolve() {

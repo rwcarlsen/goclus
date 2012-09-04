@@ -12,6 +12,7 @@ import (
 )
 
 type Fac struct {
+  msg.Commy // shortcut for [Set]Parent methods
 	id           string
 	queuedOrders []*msg.Message
 
@@ -46,13 +47,6 @@ func (f *Fac) Id() string {
 
 func (f *Fac) SetId(id string) {
 	f.id = id
-}
-
-func (f *Fac) Parent() msg.Communicator {
-	return nil
-}
-
-func (f *Fac) SetParent(par msg.Communicator) {
 }
 
 func (f *Fac) Tick() {

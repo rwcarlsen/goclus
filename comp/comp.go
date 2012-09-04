@@ -63,7 +63,7 @@ func (c *Composition) Clone() *Composition {
 // A composition that results from removing rfrac of U235 and U238 could be
 // obtained as follows:
 //
-//    part, frac := c1.Partial(92235, 92238)
+//    part, frac := c1.Partial(922350, 922380)
 //    thinned, err := c1.Mix(-1/(frac*rfrac), part)
 func (c *Composition) Partial(isos ...isos.Iso) (part *Composition, frac float64) {
   m := Map{}

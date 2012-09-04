@@ -32,6 +32,29 @@ type Communicator interface {
 	SetParent(Communicator)
 }
 
+// Commy is provided as a convenient way to automatically satisfy the Parent and
+// SetParent methods of the Communicator interface.  Simply embed Commy
+// in the sim agent's struct:
+//
+//    type MyAgent struct {
+//       msg.Commy
+//       ...
+//    }
+type Commy struct {
+  p Communicator
+}
+
+// Parent returns the value passed via SetParent or nil if SetParent hasn't
+// been called.
+func (c *Commy) Parent() Communicator {
+  return c.p
+}
+
+// SetParent sets the value returned by Parent.
+func (c *Commy) SetParent(p Communicator) {
+  c.p = p
+}
+
 // Listener is implemented by entities that desire to receive notifications
 // every time a message is passed between any two simulation agents.
 type Listener interface {

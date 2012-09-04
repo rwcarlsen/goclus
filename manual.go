@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/rwcarlsen/goclus/agents/fac"
 	"github.com/rwcarlsen/goclus/agents/mkt"
 	"github.com/rwcarlsen/goclus/books"
@@ -18,33 +17,21 @@ func main() {
 	}
 	config(eng)
 
-	bks := &books.Books{Eng: eng}
-	bks.Collect()
-	defer bks.Close()
-	eng.RegisterMsgNotify(bks)
-	eng.RegisterTransNotify(bks)
-
 	eng.Run()
-
-	err := bks.Dump()
-	if err != nil {
-		fmt.Println(err)
-	}
 }
 
 func config(eng *sim.Engine) {
 	milk := "milk"
 	cheese := "cheese"
 	src := &fac.Fac{
-		Name:       "src",
 		OutCommod:  milk,
 		OutUnits:   milk,
 		OutSize:    5,
 		CreateRate: rsrc.INFINITY,
 	}
+  src.SetId("src")
 
 	null := &fac.Fac{
-		Name:          "null",
 		InCommod:      milk,
 		InUnits:       milk,
 		InSize:        5,
@@ -55,9 +42,9 @@ func config(eng *sim.Engine) {
 		ConvertPeriod: 1,
 		ConvertOffset: 0,
 	}
+  null.SetId("null")
 
 	null2 := &fac.Fac{
-		Name:          "null2",
 		InCommod:      cheese,
 		InUnits:       cheese,
 		InSize:        5,
@@ -68,19 +55,30 @@ func config(eng *sim.Engine) {
 		ConvertPeriod: 1,
 		ConvertOffset: 0,
 	}
+  null2.SetId("null2")
 
 	snk := &fac.Fac{
-		Name:     "snk",
 		InCommod: cheese,
 		InUnits:  cheese,
 		InSize:   rsrc.INFINITY,
 	}
+  snk.SetId("snk")
 
 	milkMkt := &mkt.Mkt{Shuffle: true}
+	milkMkt.SetId(milk)
 	cheeseMkt := &mkt.Mkt{Shuffle: true}
+	cheeseMkt.SetId(cheese)
 
-	eng.RegisterTickTock(src, snk, null, null2)
-	eng.RegisterResolve(milkMkt, cheeseMkt)
-	eng.RegisterComm(milk, milkMkt)
-	eng.RegisterComm(cheese, cheeseMkt)
+	bks := &books.Books{}
+
+	eng.RegisterAll(bks)
+	eng.RegisterAll(src)
+	eng.RegisterAll(snk)
+	eng.RegisterAll(null)
+	eng.RegisterAll(null2)
+	eng.RegisterAll(milkMkt)
+	eng.RegisterAll(cheeseMkt)
+
+	eng.RegisterService(milkMkt)
+	eng.RegisterService(cheeseMkt)
 }
