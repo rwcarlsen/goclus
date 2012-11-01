@@ -21,7 +21,6 @@ type Agent interface {
 //       sim.Agenty
 //       ...
 //    }
-
 type Agenty string
 
 // Id returns the value passed via SetId or the empty string if it hasn't
