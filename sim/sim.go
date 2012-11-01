@@ -31,8 +31,8 @@ func (a Agenty) Id() string {
 }
 
 // SetId sets the value returned by Id.
-func (a Agenty) SetId(id string) {
-  a = Agenty(id)
+func (a *Agenty) SetId(id string) {
+  *a = Agenty(id)
 }
 
 type Starter interface {
