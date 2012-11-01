@@ -39,7 +39,7 @@ type agentData struct {
 // methods are NOT intended to be invoked by anything other than sim.Engine
 // during the course of a simulation.
 type Books struct {
-	id       string
+  sim.Agenty
 	eng      *sim.Engine
 	aId      int
 	done     chan bool
@@ -49,14 +49,6 @@ type Books struct {
 	tranDat  []*transData
 	agentDat map[interface{}]*agentData
 	miscDat  []interface{}
-}
-
-func (b *Books) SetId(id string) {
-	b.id = id
-}
-
-func (b *Books) Id() string {
-	return b.id
 }
 
 // Start spins off a goroutine that book-keeps all transaction and agent

@@ -13,7 +13,7 @@ import (
 
 type Fac struct {
   msg.Commy // shortcut for [Set]Parent methods
-	id           string
+  sim.Agenty
 	queuedOrders []*msg.Message
 
 	InCommod string
@@ -39,14 +39,6 @@ func (f *Fac) Start(e *sim.Engine) {
 	f.inBuff.SetCapacity(f.InSize)
 	f.outBuff = &buff.Buffer{}
 	f.outBuff.SetCapacity(f.OutSize)
-}
-
-func (f *Fac) Id() string {
-	return f.id
-}
-
-func (f *Fac) SetId(id string) {
-	f.id = id
 }
 
 func (f *Fac) Tick() {
@@ -134,14 +126,14 @@ func (f *Fac) Receive(m *msg.Message) {
 }
 
 func (f *Fac) RemoveResource(tran *trans.Transaction) {
-	fmt.Println(f.id, " sending qty=", tran.Resource().Qty(), "of", f.OutCommod)
+	fmt.Println(f.Id(), " sending qty=", tran.Resource().Qty(), "of", f.OutCommod)
 	rs, err := f.outBuff.PopQty(tran.Resource().Qty())
 	check(err)
 	tran.Manifest = rs
 }
 
 func (f *Fac) AddResource(tran *trans.Transaction) {
-	fmt.Println(f.id, " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
+	fmt.Println(f.Id(), " getting qty=", tran.Resource().Qty(), "of", f.InCommod)
 	err := f.inBuff.Push(tran.Manifest...)
 	check(err)
 }

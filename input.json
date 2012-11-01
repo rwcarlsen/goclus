@@ -53,8 +53,8 @@
       "ParentId":"0"
     },
     {
-      "IsService":true,
       "Id":"milk",
+      "IsService":true,
       "ProtoId":"milk market",
       "ParentId":"0"
     }

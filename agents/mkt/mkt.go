@@ -4,24 +4,17 @@ import (
 	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/rsrc"
 	"github.com/rwcarlsen/goclus/trans"
+	"github.com/rwcarlsen/goclus/sim"
 	"math/rand"
 )
 
 type Mkt struct {
   msg.Commy
-	id       string
+  sim.Agenty
 	Shuffle  bool
 	Seed     int64
 	offers   msg.Group
 	requests msg.Group
-}
-
-func (m *Mkt) SetId(id string) {
-	m.id = id
-}
-
-func (m *Mkt) Id() string {
-	return m.id
 }
 
 func (m *Mkt) Receive(mg *msg.Message) {
