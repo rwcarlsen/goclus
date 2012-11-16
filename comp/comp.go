@@ -105,10 +105,8 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 }
 
 func (c *Composition) Decay(delta int) *Composition {
-	for tm, child := range c.decayChilds {
-		if tm == delta {
-			return child
-		}
+	if child, ok := c.decayChilds[delta]; ok {
+		return child
 	}
 
 	decayed := c.decay(delta)
