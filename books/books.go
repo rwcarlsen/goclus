@@ -39,7 +39,7 @@ type agentData struct {
 // methods are NOT intended to be invoked by anything other than sim.Engine
 // during the course of a simulation.
 type Books struct {
-  sim.Agenty
+	sim.Agenty
 	eng      *sim.Engine
 	aId      int
 	done     chan bool

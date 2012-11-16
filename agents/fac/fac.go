@@ -12,8 +12,8 @@ import (
 )
 
 type Fac struct {
-  msg.Commy // shortcut for [Set]Parent methods
-  sim.Agenty
+	msg.Commy // shortcut for [Set]Parent methods
+	sim.Agenty
 	queuedOrders []*msg.Message
 
 	InCommod string

@@ -41,18 +41,18 @@ type Communicator interface {
 //       ...
 //    }
 type Commy struct {
-  p Communicator
+	p Communicator
 }
 
 // Parent returns the value passed via SetParent or nil if SetParent hasn't
 // been called.
 func (c *Commy) Parent() Communicator {
-  return c.p
+	return c.p
 }
 
 // SetParent sets the value returned by Parent.
 func (c *Commy) SetParent(p Communicator) {
-  c.p = p
+	c.p = p
 }
 
 // Listener is implemented by entities that desire to receive notifications

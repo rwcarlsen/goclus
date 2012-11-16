@@ -29,7 +29,7 @@ func config(eng *sim.Engine) {
 		OutSize:    5,
 		CreateRate: rsrc.INFINITY,
 	}
-  src.SetId("src")
+	src.SetId("src")
 
 	null := &fac.Fac{
 		InCommod:      milk,
@@ -42,7 +42,7 @@ func config(eng *sim.Engine) {
 		ConvertPeriod: 1,
 		ConvertOffset: 0,
 	}
-  null.SetId("null")
+	null.SetId("null")
 
 	null2 := &fac.Fac{
 		InCommod:      cheese,
@@ -55,14 +55,14 @@ func config(eng *sim.Engine) {
 		ConvertPeriod: 1,
 		ConvertOffset: 0,
 	}
-  null2.SetId("null2")
+	null2.SetId("null2")
 
 	snk := &fac.Fac{
 		InCommod: cheese,
 		InUnits:  cheese,
 		InSize:   rsrc.INFINITY,
 	}
-  snk.SetId("snk")
+	snk.SetId("snk")
 
 	milkMkt := &mkt.Mkt{Shuffle: true}
 	milkMkt.SetId(milk)

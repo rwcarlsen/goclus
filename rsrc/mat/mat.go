@@ -11,9 +11,9 @@ const Type = "Material"
 
 // Material is a resource for tracking, and manipulating nuclear materials.
 type Material struct {
-  // Comp represents the nuclear composition of the material.
+	// Comp represents the nuclear composition of the material.
 	Comp *comp.Composition
-	qty float64
+	qty  float64
 }
 
 // New creates and returns a new material of the given qty with
@@ -22,7 +22,7 @@ type Material struct {
 func New(qty float64, Comp *comp.Composition) *Material {
 	return &Material{
 		Comp: Comp,
-		qty: qty,
+		qty:  qty,
 	}
 }
 
@@ -92,9 +92,9 @@ func (m *Material) ExtractComp(qty float64, comp *comp.Composition) (*Material, 
 
 // Absorb adds/combines other into the material.
 func (m *Material) Absorb(other *Material) {
-  if other.Comp != m.Comp {
-    m.Comp, _ = m.Comp.Mix(m.qty/other.qty, other.Comp)
-  }
+	if other.Comp != m.Comp {
+		m.Comp, _ = m.Comp.Mix(m.qty/other.qty, other.Comp)
+	}
 	m.qty += other.qty
-  other.qty = 0
+	other.qty = 0
 }

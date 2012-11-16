@@ -3,14 +3,14 @@ package mkt
 import (
 	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/rsrc"
-	"github.com/rwcarlsen/goclus/trans"
 	"github.com/rwcarlsen/goclus/sim"
+	"github.com/rwcarlsen/goclus/trans"
 	"math/rand"
 )
 
 type Mkt struct {
-  msg.Commy
-  sim.Agenty
+	msg.Commy
+	sim.Agenty
 	Shuffle  bool
 	Seed     int64
 	offers   msg.Group

@@ -26,12 +26,12 @@ type Agenty string
 // Id returns the value passed via SetId or the empty string if it hasn't
 // been called.
 func (a Agenty) Id() string {
-  return string(a)
+	return string(a)
 }
 
 // SetId sets the value returned by Id.
 func (a *Agenty) SetId(id string) {
-  *a = Agenty(id)
+	*a = Agenty(id)
 }
 
 type Starter interface {

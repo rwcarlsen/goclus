@@ -18,13 +18,13 @@ func (m Map) Clone() Map {
 
 // normalize makes the sum of map's elements add to zero.
 func (m Map) normalize() {
-  var tot float64 = 0
-  for _, val := range m {
-    tot += val
-  }
-  for iso, _ := range m {
-    m[iso] /= tot
-  }
+	var tot float64 = 0
+	for _, val := range m {
+		tot += val
+	}
+	for iso, _ := range m {
+		m[iso] /= tot
+	}
 }
 
 // Composition is an immutable representation of nuclear material
@@ -33,27 +33,27 @@ func (m Map) normalize() {
 // maintained composition information is not duplicated.  If a copy is
 // neaded, use the Clone method.
 type Composition struct {
-	comp Map
-  decayChilds map[int]*Composition
+	comp        Map
+	decayChilds map[int]*Composition
 }
 
 // New creates a new composition from m.
 // Note that any modifications to m after it has been passed to a
 // composition will be visible to the composition object.
 func New(m Map) *Composition {
-  var tot float64 = 0
-  for _, val := range m {
-    tot += val
-  }
+	var tot float64 = 0
+	for _, val := range m {
+		tot += val
+	}
 
-  comp := m.Clone()
-  comp.normalize()
-  return &Composition{comp: comp}
+	comp := m.Clone()
+	comp.normalize()
+	return &Composition{comp: comp}
 }
 
 // Clone returns a copy of the composition.
 func (c *Composition) Clone() *Composition {
-  return &Composition{comp: c.comp.Clone()}
+	return &Composition{comp: c.comp.Clone()}
 }
 
 // Partial returns a comp map from the composition containing only the
@@ -67,13 +67,13 @@ func (c *Composition) Clone() *Composition {
 //    part, frac := c1.Partial(922350, 922380)
 //    thinned, err := c1.Mix(-1/(frac*rfrac), part)
 func (c *Composition) Partial(isos ...isos.Iso) (part *Composition, frac float64) {
-  m := Map{}
-  for _, iso := range isos {
-    qty := c.comp[iso]
-    frac += qty
-    m[iso] = qty
-  }
-  return New(m), frac
+	m := Map{}
+	for _, iso := range isos {
+		qty := c.comp[iso]
+		frac += qty
+		m[iso] = qty
+	}
+	return New(m), frac
 }
 
 // Mix creates a new composition by combining the composition and other where
@@ -85,9 +85,9 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 	}
 
 	mcomp := c.comp.Clone()
-  for key, _ := range mcomp {
-    mcomp[key] *= math.Abs(ratio)
-  }
+	for key, _ := range mcomp {
+		mcomp[key] *= math.Abs(ratio)
+	}
 
 	if ratio > 0 {
 		for key, qty := range other.comp {
@@ -105,19 +105,18 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 }
 
 func (c *Composition) Decay(delta int) *Composition {
-  for tm, child := range c.decayChilds {
-    if tm == delta {
-      return child
-    }
-  }
+	for tm, child := range c.decayChilds {
+		if tm == delta {
+			return child
+		}
+	}
 
-  decayed := c.decay(delta)
-  c.decayChilds[delta] = decayed
-  return decayed
+	decayed := c.decay(delta)
+	c.decayChilds[delta] = decayed
+	return decayed
 }
 
 func (c *Composition) decay(delta int) *Composition {
-  // insert decay logic/algo here
-  return &Composition{}
+	// insert decay logic/algo here
+	return &Composition{}
 }
-
