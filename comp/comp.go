@@ -34,7 +34,8 @@ func (m Map) normalize() {
 // neaded, use the Clone method.
 type Composition struct {
 	comp        Map
-	decayChilds map[int]*Composition
+	decayChilds *map[int]*Composition
+	decayFromParent int
 }
 
 // New creates a new composition from m.
@@ -105,16 +106,21 @@ func (c *Composition) Mix(ratio float64, other *Composition) (*Composition, erro
 }
 
 func (c *Composition) Decay(delta int) *Composition {
-	if child, ok := c.decayChilds[delta]; ok {
+	if child, ok := (*c.decayChilds)[delta]; ok {
 		return child
 	}
 
 	decayed := c.decay(delta)
-	c.decayChilds[delta] = decayed
+	(*c.decayChilds)[delta] = decayed
 	return decayed
 }
 
 func (c *Composition) decay(delta int) *Composition {
 	// insert decay logic/algo here
-	return &Composition{}
+
+	return &Composition{
+		decayChilds: c.decayChilds, 
+		decayFromParent: c.decayFromParent + delta,
+		//comp: comp,
+	}
 }

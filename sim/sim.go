@@ -34,10 +34,6 @@ func (a *Agenty) SetId(id string) {
 	*a = Agenty(id)
 }
 
-type Starter interface {
-	Start(*Engine)
-}
-
 type Ender interface {
 	End(*Engine)
 }
@@ -66,6 +62,40 @@ type Engine struct {
 	tockers     []Tocker
 	enders      []Ender
 	tm          time.Time // current time (in the simulation)
+}
+
+func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
+	switch t := a.(type) {
+	case Ticker:
+		e.tickers = append(e.tickers, t)
+		ifaces = append(ifaces, "Ticker")
+	}
+	switch t := a.(type) {
+	case Tocker:
+		e.tockers = append(e.tockers, t)
+		ifaces = append(ifaces, "Tocker")
+	}
+	switch t := a.(type) {
+	case Resolver:
+		e.resolvers = append(e.resolvers, t)
+		ifaces = append(ifaces, "Resolver")
+	}
+	switch t := a.(type) {
+	case Ender:
+		e.enders = append(e.enders, t)
+		ifaces = append(ifaces, "Ender")
+	}
+	switch t := a.(type) {
+	case msg.Listener:
+		e.msgListen = append(e.msgListen, t)
+		ifaces = append(ifaces, "msg.Listener")
+	}
+	switch t := a.(type) {
+	case trans.Listener:
+		e.transListen = append(e.transListen, t)
+		ifaces = append(ifaces, "trans.Listener")
+	}
+	return
 }
 
 func (e *Engine) RegisterService(a Agent) error {
@@ -101,75 +131,6 @@ func (e *Engine) GetComm(id string) (msg.Communicator, error) {
 		return nil, errors.New("sim: cannot convert '" + id + "' to msg.Communicator")
 	}
 	return nil, err
-}
-
-func (e *Engine) RegisterStart(starters ...Starter) {
-	for _, s := range starters {
-		s.Start(e)
-	}
-}
-
-func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
-	switch t := a.(type) {
-	case Ticker:
-		e.RegisterTick(t)
-		ifaces = append(ifaces, "Ticker")
-	}
-	switch t := a.(type) {
-	case Tocker:
-		e.RegisterTock(t)
-		ifaces = append(ifaces, "Tocker")
-	}
-	switch t := a.(type) {
-	case Resolver:
-		e.RegisterResolve(t)
-		ifaces = append(ifaces, "Resolver")
-	}
-	switch t := a.(type) {
-	case Starter:
-		e.RegisterStart(t)
-		ifaces = append(ifaces, "Starter")
-	}
-	switch t := a.(type) {
-	case Ender:
-		e.RegisterEnd(t)
-		ifaces = append(ifaces, "Ender")
-	}
-	switch t := a.(type) {
-	case msg.Listener:
-		e.RegisterMsgNotify(t)
-		ifaces = append(ifaces, "msg.Listener")
-	}
-	switch t := a.(type) {
-	case trans.Listener:
-		e.RegisterTransNotify(t)
-		ifaces = append(ifaces, "trans.Listener")
-	}
-	return
-}
-
-func (e *Engine) RegisterTick(ts ...Ticker) {
-	e.tickers = append(e.tickers, ts...)
-}
-
-func (e *Engine) RegisterResolve(rs ...Resolver) {
-	e.resolvers = append(e.resolvers, rs...)
-}
-
-func (e *Engine) RegisterTock(ts ...Tocker) {
-	e.tockers = append(e.tockers, ts...)
-}
-
-func (e *Engine) RegisterEnd(enders ...Ender) {
-	e.enders = append(e.enders, enders...)
-}
-
-func (e *Engine) RegisterMsgNotify(l msg.Listener) {
-	e.msgListen = append(e.msgListen, l)
-}
-
-func (e *Engine) RegisterTransNotify(l trans.Listener) {
-	e.transListen = append(e.transListen, l)
 }
 
 func (e *Engine) MsgNotify(m *msg.Message) {
