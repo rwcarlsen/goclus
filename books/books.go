@@ -3,7 +3,6 @@ package books
 
 import (
 	"encoding/json"
-	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/sim"
 	"github.com/rwcarlsen/goclus/trans"
 	"os"
@@ -27,44 +26,49 @@ type transData struct {
 // output-write-ready format.
 type agentData struct {
 	Id       int
+	Name     string
 	Type     string
 	Born     time.Time
 	ParentId int
 }
 
 // Books is an agent that records participating-agent and transaction activity
-// during a simulation.
-// Note that the Books agent is intended to be registered with a sim.Engine
-// for services for which it implements appropriate interfaces. The public
-// methods are NOT intended to be invoked by anything other than sim.Engine
-// during the course of a simulation.
+// during a simulation.  Note that the Books agent is intended to be registered
+// with a sim.Engine for services for which it implements appropriate
+// interfaces. The public methods are NOT intended to be invoked by anything
+// other than sim.Engine during the course of a simulation.
 type Books struct {
 	sim.Agenty
 	eng      *sim.Engine
-	aId      int
+	tId		 int // next trans id tracker
+	eId		 int // next trans entry id tracker
 	done     chan bool
 	transIn  chan *trans.Transaction
-	msgIn    chan *msg.Message
+	msgIn    chan *sim.Message
 	miscIn   chan interface{}
 	tranDat  []*transData
-	agentDat map[interface{}]*agentData
+	agentDat map[int]*agentData
 	miscDat  []interface{}
 }
 
 // Start spins off a goroutine that book-keeps all transaction and agent
 // information as provided via MsgNotify and TransNotify.
 func (b *Books) Start(e *sim.Engine) {
+	sim.ListenAllMsg(b)
+	trans.ListenAll(b)
+
 	b.done = make(chan bool)
+	b.agentDat = map[int]*agentData{}
 	b.transIn = make(chan *trans.Transaction)
-	b.msgIn = make(chan *msg.Message)
+	b.msgIn = make(chan *sim.Message)
 	go func() {
 		for {
 			select {
 			case t := <-b.transIn:
 				b.regTrans(t)
 			case m := <-b.msgIn:
-				b.regComm(m.PrevOwner)
-				b.regComm(m.Owner)
+				b.regAgent(m.PrevOwner)
+				b.regAgent(m.Owner)
 			case i := <-b.miscIn:
 				b.miscDat = append(b.miscDat, i)
 			case <-b.done:
@@ -84,7 +88,7 @@ func (b *Books) End(e *sim.Engine) {
 
 // MsgNotify is used to collect information about agents participating in a
 // simulation from the sim.Engine.
-func (b *Books) MsgNotify(m *msg.Message) {
+func (b *Books) MsgNotify(m *sim.Message) {
 	b.msgIn <- m
 }
 
@@ -95,55 +99,42 @@ func (b *Books) TransNotify(t *trans.Transaction) {
 }
 
 func (b *Books) regTrans(t *trans.Transaction) {
-	id, tid := 0, 0
-	if len(b.tranDat) > 0 {
-		id = b.tranDat[len(b.tranDat)-1].Id + 1
-		tid = b.tranDat[len(b.tranDat)-1].TransId + 1
-	}
-
-	b.regAgent(t.Sup)
-	b.regAgent(t.Req)
-
+	b.regAgent(t.Sup.(sim.Agent))
+	b.regAgent(t.Req.(sim.Agent))
 	for _, r := range t.Manifest {
 		tp := reflect.Indirect(reflect.ValueOf(r)).Type()
 		tdat := &transData{
-			Id:      id,
-			TransId: tid,
-			SupId:   b.agentDat[t.Sup].Id,
-			ReqId:   b.agentDat[t.Req].Id,
+			Id:      b.eId,
+			TransId: b.tId,
+			SupId:   t.Sup.(sim.Agent).Id(),
+			ReqId:   t.Req.(sim.Agent).Id(),
 			ResType: tp.PkgPath() + "." + tp.Name(),
 			Qty:     r.Qty(),
 			Units:   r.Units(),
 		}
+		b.eId++
 		b.tranDat = append(b.tranDat, tdat)
 	}
+	b.tId++
 }
 
-func (b *Books) regComm(c msg.Communicator) {
-	b.regAgent(c)
-
-	// this comes last to prevent infinite looping
-	if par := c.Parent(); par != nil {
-		b.regComm(par)
-		b.agentDat[c].ParentId = b.agentDat[par].Id
-	}
-}
-
-func (b *Books) regAgent(a interface{}) {
-	if b.agentDat == nil {
-		b.agentDat = map[interface{}]*agentData{}
-	} else if _, ok := b.agentDat[a]; ok {
+func (b *Books) regAgent(a sim.Agent) {
+	if _, ok := b.agentDat[a.Id()]; ok {
 		return
 	}
 
-	b.aId++
 	tp := reflect.Indirect(reflect.ValueOf(a)).Type()
-
-	b.agentDat[a] = &agentData{
-		Id:       b.aId,
+	b.agentDat[a.Id()] = &agentData{
+		Id:       a.Id(),
+		Name: 	  a.Name(),
 		Type:     tp.PkgPath() + "." + tp.Name(),
 		Born:     b.getTime(),
-		ParentId: -1,
+	}
+
+	// this comes last to prevent infinite looping
+	if par := a.Parent(); par != nil {
+		b.agentDat[a.Id()].ParentId = par.Id()
+		b.regAgent(par)
 	}
 }
 

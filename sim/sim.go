@@ -3,8 +3,6 @@ package sim
 import (
 	"errors"
 	"fmt"
-	"github.com/rwcarlsen/goclus/msg"
-	"github.com/rwcarlsen/goclus/trans"
 	"time"
 )
 
@@ -13,17 +11,21 @@ type Engine struct {
 	Step        time.Duration
 	Load        *Loader
 	services    map[string]Agent
-	msgListen   []msg.Listener
-	transListen []trans.Listener
 	tickers     []Ticker
 	resolvers   []Resolver
 	tockers     []Tocker
 	starters    []Starter
 	enders      []Ender
 	tm          time.Time // current time (in the simulation)
+	nextId      int // the next agent ID
 }
 
+// RegisterAll registers agent a to receive time-related notifications for
+// all sim package interfaces implemented.
 func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
+	e.nextId++
+	a.SetId(e.nextId)
+
 	if t, ok := a.(Ticker); ok {
 		e.tickers = append(e.tickers, t)
 		ifaces = append(ifaces, "Ticker")
@@ -43,29 +45,26 @@ func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
 		e.enders = append(e.enders, t)
 		ifaces = append(ifaces, "Ender")
 	}
-	if t, ok := a.(msg.Listener); ok {
-		e.msgListen = append(e.msgListen, t)
-		ifaces = append(ifaces, "msg.Listener")
-	}
-	if t, ok := a.(trans.Listener); ok {
-		e.transListen = append(e.transListen, t)
-		ifaces = append(ifaces, "trans.Listener")
-	}
 	return ifaces
 }
 
+// RegisterService registers an agent with a simulation-global list that
+// can be accessed by all agents.  The agent's ID will be used as the
+// retrival key.
 func (e *Engine) RegisterService(a Agent) error {
 	if e.services == nil {
 		e.services = map[string]Agent{}
 	}
 
-	if _, ok := e.services[a.Id()]; ok {
-		return errors.New("sim: duplicate service id '" + a.Id() + "'")
+	if _, ok := e.services[a.Name()]; ok {
+		return errors.New("sim: duplicate service name '" + a.Name() + "'")
 	}
-	e.services[a.Id()] = a
+	e.services[a.Name()] = a
 	return nil
 }
 
+// GetService returns the agent registered under id or an error if no agent
+// has registered under the given id.
 func (e *Engine) GetService(id string) (Agent, error) {
 	unreg := errors.New("sim: service id '" + id + "' not registered")
 	if e.services == nil {
@@ -78,32 +77,7 @@ func (e *Engine) GetService(id string) (Agent, error) {
 	return a, nil
 }
 
-func (e *Engine) GetComm(id string) (msg.Communicator, error) {
-	v, err := e.GetService(id)
-	if err == nil {
-		if c, ok := v.(msg.Communicator); ok {
-			return c, nil
-		}
-		return nil, errors.New("sim: cannot convert '" + id + "' to msg.Communicator")
-	}
-	return nil, err
-}
-
-func (e *Engine) MsgNotify(m *msg.Message) {
-	for _, l := range e.msgListen {
-		l.MsgNotify(m)
-	}
-}
-
-func (e *Engine) TransNotify(t *trans.Transaction) {
-	for _, l := range e.transListen {
-		l.TransNotify(t)
-	}
-}
-
 func (e *Engine) Run() {
-	msg.ListenAll(e)
-	trans.ListenAll(e)
 	e.runTimeSteps()
 	for _, en := range e.enders {
 		en.End(e)
