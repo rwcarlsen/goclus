@@ -8,48 +8,6 @@ import (
 	"time"
 )
 
-type Agent interface {
-	SetId(string)
-	Id() string
-}
-
-// Agenty is provided as a convenient way to automatically satisfy the Id and
-// SetId methods of the Agent interface.  Simply embed Agenty in the sim 
-// agent's struct:
-//
-//    type MyAgent struct {
-//       sim.Agenty
-//       ...
-//    }
-type Agenty string
-
-// Id returns the value passed via SetId or the empty string if it hasn't
-// been called.
-func (a Agenty) Id() string {
-	return string(a)
-}
-
-// SetId sets the value returned by Id.
-func (a *Agenty) SetId(id string) {
-	*a = Agenty(id)
-}
-
-type Ender interface {
-	End(*Engine)
-}
-
-type Ticker interface {
-	Tick()
-}
-
-type Tocker interface {
-	Tock()
-}
-
-type Resolver interface {
-	Resolve()
-}
-
 type Engine struct {
 	Duration    time.Duration
 	Step        time.Duration
@@ -60,42 +18,41 @@ type Engine struct {
 	tickers     []Ticker
 	resolvers   []Resolver
 	tockers     []Tocker
+	starters    []Starter
 	enders      []Ender
 	tm          time.Time // current time (in the simulation)
 }
 
 func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
-	switch t := a.(type) {
-	case Ticker:
+	if t, ok := a.(Ticker) {
 		e.tickers = append(e.tickers, t)
 		ifaces = append(ifaces, "Ticker")
 	}
-	switch t := a.(type) {
-	case Tocker:
+	if t, ok := a.(Tocker) {
 		e.tockers = append(e.tockers, t)
 		ifaces = append(ifaces, "Tocker")
 	}
-	switch t := a.(type) {
-	case Resolver:
+	if t, ok := a.(Resolver) {
 		e.resolvers = append(e.resolvers, t)
 		ifaces = append(ifaces, "Resolver")
 	}
-	switch t := a.(type) {
-	case Ender:
+	if t, ok := a.(Starter) {
+		e.enders = append(e.enders, t)
+		ifaces = append(ifaces, "Starter")
+	}
+	if t, ok := a.(Ender) {
 		e.enders = append(e.enders, t)
 		ifaces = append(ifaces, "Ender")
 	}
-	switch t := a.(type) {
-	case msg.Listener:
+	if t, ok := a.(msg.Listener) {
 		e.msgListen = append(e.msgListen, t)
 		ifaces = append(ifaces, "msg.Listener")
 	}
-	switch t := a.(type) {
-	case trans.Listener:
+	if t, ok := a.(trans.Listener) {
 		e.transListen = append(e.transListen, t)
 		ifaces = append(ifaces, "trans.Listener")
 	}
-	return
+	return ifaces
 }
 
 func (e *Engine) RegisterService(a Agent) error {
