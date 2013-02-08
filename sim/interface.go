@@ -1,4 +1,6 @@
 
+package sim
+
 type Agent interface {
 	SetId(string)
 	Id() string

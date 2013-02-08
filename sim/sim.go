@@ -24,31 +24,30 @@ type Engine struct {
 }
 
 func (e *Engine) RegisterAll(a Agent) (ifaces []string) {
-	if t, ok := a.(Ticker) {
+	if t, ok := a.(Ticker); ok {
 		e.tickers = append(e.tickers, t)
 		ifaces = append(ifaces, "Ticker")
 	}
-	if t, ok := a.(Tocker) {
+	if t, ok := a.(Tocker); ok {
 		e.tockers = append(e.tockers, t)
 		ifaces = append(ifaces, "Tocker")
 	}
-	if t, ok := a.(Resolver) {
+	if t, ok := a.(Resolver); ok {
 		e.resolvers = append(e.resolvers, t)
 		ifaces = append(ifaces, "Resolver")
 	}
-	if t, ok := a.(Starter) {
-		e.enders = append(e.enders, t)
-		ifaces = append(ifaces, "Starter")
+	if t, ok := a.(Starter); ok {
+		t.Start(e)
 	}
-	if t, ok := a.(Ender) {
+	if t, ok := a.(Ender); ok {
 		e.enders = append(e.enders, t)
 		ifaces = append(ifaces, "Ender")
 	}
-	if t, ok := a.(msg.Listener) {
+	if t, ok := a.(msg.Listener); ok {
 		e.msgListen = append(e.msgListen, t)
 		ifaces = append(ifaces, "msg.Listener")
 	}
-	if t, ok := a.(trans.Listener) {
+	if t, ok := a.(trans.Listener); ok {
 		e.transListen = append(e.transListen, t)
 		ifaces = append(ifaces, "trans.Listener")
 	}
