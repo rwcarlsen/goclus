@@ -2,7 +2,6 @@ package fac
 
 import (
 	"fmt"
-	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/rsrc"
 	"github.com/rwcarlsen/goclus/rsrc/buff"
 	"github.com/rwcarlsen/goclus/sim"
@@ -12,9 +11,8 @@ import (
 )
 
 type Fac struct {
-	msg.Commy // shortcut for [Set]Parent methods
 	sim.Agenty
-	queuedOrders []*msg.Message
+	queuedOrders []*sim.Message
 
 	InCommod string
 	InUnits  string
@@ -65,8 +63,8 @@ func (f *Fac) genMsg(commod string, qty float64, t trans.TransType) {
 	r := rsrc.NewGeneric(qty, units)
 	tran.SetResource(r)
 
-	mkt, _ := f.eng.GetComm(commod)
-	m := msg.New(f, mkt)
+	mkt, _ := f.eng.GetService(commod)
+	m := sim.NewMsg(f, mkt)
 	m.Trans = tran
 	m.SendOn()
 }
@@ -87,7 +85,7 @@ func (f *Fac) approveOffers() {
 	for _, m := range f.queuedOrders {
 		m.Trans.Approve()
 	}
-	f.queuedOrders = msg.Group{}
+	f.queuedOrders = sim.MsgGroup{}
 }
 
 func (f *Fac) createRes(qty float64) {
@@ -119,7 +117,7 @@ func (f *Fac) convertRes() {
 	}
 }
 
-func (f *Fac) Receive(m *msg.Message) {
+func (f *Fac) Receive(m *sim.Message) {
 	if m.Sender() == f {
 		f.queuedOrders = append(f.queuedOrders, m)
 	}

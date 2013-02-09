@@ -1,7 +1,6 @@
 package mkt
 
 import (
-	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/rsrc"
 	"github.com/rwcarlsen/goclus/sim"
 	"github.com/rwcarlsen/goclus/trans"
@@ -9,15 +8,14 @@ import (
 )
 
 type Mkt struct {
-	msg.Commy
 	sim.Agenty
 	Shuffle  bool
 	Seed     int64
-	offers   msg.Group
-	requests msg.Group
+	offers   sim.MsgGroup
+	requests sim.MsgGroup
 }
 
-func (m *Mkt) Receive(mg *msg.Message) {
+func (m *Mkt) Receive(mg *sim.Message) {
 	if mg.Trans.Type() == trans.Offer {
 		m.offers = append(m.offers, mg)
 	} else {
@@ -31,7 +29,7 @@ func (m *Mkt) Resolve() {
 		shuffle(m.requests)
 	}
 
-	var matched msg.Group
+	var matched sim.MsgGroup
 	for len(m.requests) > 0 && len(m.offers) > 0 {
 		mg := m.requests[0]
 		qty := mg.Trans.Resource().Qty()
@@ -40,22 +38,22 @@ func (m *Mkt) Resolve() {
 		m.requests = m.requests[1:]
 	}
 
-	m.offers = msg.Group{}
-	m.requests = msg.Group{}
+	m.offers = sim.MsgGroup{}
+	m.requests = sim.MsgGroup{}
 }
 
-func (m *Mkt) matchAll(group msg.Group, mg *msg.Message) {
+func (m *Mkt) matchAll(group sim.MsgGroup, mg *sim.Message) {
 	for _, gpMem := range group {
 		err := gpMem.Trans.MatchWith(mg.Trans)
 		if err != nil {
 			panic(err.Error())
 		}
-		gpMem.Dir = msg.Down
+		gpMem.Dir = sim.DownMsg
 		gpMem.SendOn()
 	}
 }
 
-func (m *Mkt) extractQty(group msg.Group, qty float64) (orig, extracted msg.Group) {
+func (m *Mkt) extractQty(group sim.MsgGroup, qty float64) (orig, extracted sim.MsgGroup) {
 	unmet := qty
 	for len(group) > 0 && unmet >= rsrc.EPS {
 		currMsg := group[0]
@@ -73,7 +71,7 @@ func (m *Mkt) extractQty(group msg.Group, qty float64) (orig, extracted msg.Grou
 	return group, extracted
 }
 
-func (m *Mkt) extractFromMsg(mg *msg.Message, qty float64) *msg.Message {
+func (m *Mkt) extractFromMsg(mg *sim.Message, qty float64) *sim.Message {
 	extracted := mg.Clone()
 	extracted.Trans.Resource().SetQty(qty)
 
@@ -83,9 +81,9 @@ func (m *Mkt) extractFromMsg(mg *msg.Message, qty float64) *msg.Message {
 	return extracted
 }
 
-func shuffle(gp msg.Group) {
+func shuffle(gp sim.MsgGroup) {
 	inds := rand.Perm(len(gp))
-	orig := make(msg.Group, len(gp))
+	orig := make(sim.MsgGroup, len(gp))
 	copy(orig, gp)
 
 	for i, ind := range inds {

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/rwcarlsen/goclus/msg"
 	"io/ioutil"
 	"reflect"
 	"strings"
@@ -16,9 +15,9 @@ type ProtoInfo struct {
 }
 
 type AgentInfo struct {
-	Id        string
+	Name      string
 	ProtoId   string
-	ParentId  string
+	ParentName string
 	IsService bool
 }
 
@@ -41,22 +40,26 @@ func (l *Loader) Register(a interface{}) {
 	l.agentLib[name] = t
 }
 
-func (l *Loader) NewAgent(importPath string, parent msg.Communicator) interface{} {
+func (l *Loader) NewAgent(importPath string, parent Agent) Agent {
 	a := l.newPrototype(importPath)
 	if parent != nil {
-		a.(msg.Communicator).SetParent(parent)
+		a.SetParent(parent)
 	}
 	return a
 }
 
-func (l *Loader) newPrototype(importPath string) interface{} {
+func (l *Loader) newPrototype(importPath string) Agent {
 	if tp, ok := l.agentLib[importPath]; ok {
-		return reflect.New(tp).Interface()
+		if a, ok := reflect.New(tp).Interface().(Agent); !ok {
+			panic("loader: Agent '" + importPath + "' does not implement required sim.Agent methods")
+		} else {
+			return a
+		}
 	}
 	panic("loader: No registered agent for import path '" + importPath + "'")
 }
 
-func (l *Loader) NewAgentFromProto(protoId string, parent msg.Communicator) interface{} {
+func (l *Loader) NewAgentFromProto(protoId string, parent Agent) Agent {
 	importPath := l.imports[protoId]
 	a := l.NewAgent(importPath, parent)
 	data, _ := json.Marshal(l.protos[protoId])
@@ -98,24 +101,19 @@ func (l *Loader) LoadSim(fname string) error {
 	}
 
 	// create agents from prototypes
-	agents := []interface{}{}
-	agentMap := map[string]interface{}{}
+	agents := []Agent{}
+	agentMap := map[string]Agent{}
 	for _, info := range l.Agents {
 		a := l.NewAgentFromProto(info.ProtoId, nil)
-		agentMap[info.Id] = a
+		agentMap[info.Name] = a
 		agents = append(agents, a)
 
-		ag, ok := a.(Agent)
-		if !ok {
-			panic("loader: Agent '" + info.Id + "' does not implement required sim.Agent methods")
-		}
-
-		ag.SetId(info.Id)
-		l.Engine.RegisterAll(ag)
+		a.SetName(info.Name)
+		l.Engine.RegisterAll(a)
 
 		// register as service
 		if info.IsService {
-			if err := l.Engine.RegisterService(ag); err != nil {
+			if err := l.Engine.RegisterService(a); err != nil {
 				panic("loader: " + err.Error())
 			}
 		}
@@ -123,12 +121,10 @@ func (l *Loader) LoadSim(fname string) error {
 
 	for i, info := range l.Agents {
 		// set parents
-		if c, ok := agents[i].(msg.Communicator); ok {
-			if par, ok := agentMap[info.ParentId]; ok {
-				c.SetParent(par.(msg.Communicator))
-			}
+		a := agents[i]
+		if par, ok := agentMap[info.ParentName]; ok {
+			a.SetParent(par)
 		}
-
 	}
 
 	l.Engine.Load = l

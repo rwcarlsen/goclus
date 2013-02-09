@@ -33,30 +33,30 @@
     },
   "Agents":[
     {
-      "Id":"book-keeper1",
+      "Name":"book-keeper1",
       "ProtoId":"book-keeper",
-      "ParentId":"0"
+      "ParentName":"0"
     },
     {
-      "Id":"src1",
+      "Name":"src1",
       "ProtoId":"src",
-      "ParentId":"0"
+      "ParentName":"0"
     },
     {
-      "Id":"src2",
+      "Name":"src2",
       "ProtoId":"src",
-      "ParentId":"0"
+      "ParentName":"0"
     },
     {
-      "Id":"snk1",
+      "Name":"snk1",
       "ProtoId":"snk",
-      "ParentId":"0"
+      "ParentName":"0"
     },
     {
-      "Id":"milk",
+      "Name":"milk",
       "IsService":true,
       "ProtoId":"milk market",
-      "ParentId":"0"
+      "ParentName":"0"
     }
   ]
 }

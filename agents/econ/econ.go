@@ -1,7 +1,6 @@
 package econ
 
 import (
-	"github.com/rwcarlsen/goclus/msg"
 	"github.com/rwcarlsen/goclus/sim"
 	"github.com/rwcarlsen/goclus/trans"
 	"time"
@@ -9,10 +8,10 @@ import (
 
 type Econ struct {
 	id      string
-	req     map[msg.Communicator]map[time.Time]float64
-	off     map[msg.Communicator]map[time.Time]float64
+	req     map[sim.Agent]map[time.Time]float64
+	off     map[sim.Agent]map[time.Time]float64
 	times   []time.Time
-	Tracked []string
+	Tracked []int
 	eng     *sim.Engine
 }
 
@@ -28,7 +27,7 @@ func (e *Econ) Start(eng *sim.Engine) {
 	e.eng = eng
 }
 
-func (e *Econ) MsgNotify(m *msg.Message) {
+func (e *Econ) MsgNotify(m *sim.Message) {
 	if !e.isTracked(m.Owner) || m.Trans == nil {
 		return
 	}
@@ -42,19 +41,17 @@ func (e *Econ) MsgNotify(m *msg.Message) {
 	e.times = append(e.times, e.eng.Time())
 }
 
-func (e *Econ) isTracked(c msg.Communicator) bool {
-	if a, ok := c.(sim.Agent); ok {
-		for _, id := range e.Tracked {
-			if a.Id() == id {
-				return true
-			}
+func (e *Econ) isTracked(a sim.Agent) bool {
+	for _, id := range e.Tracked {
+		if a.Id() == id {
+			return true
 		}
 	}
 	return false
 }
 
 func (e *Econ) OfferQty(id string) (float64, error) {
-	mkt, err := e.eng.GetComm(id)
+	mkt, err := e.eng.GetService(id)
 	if err != nil {
 		return 0, err
 	}
@@ -68,7 +65,7 @@ func (e *Econ) OfferQty(id string) (float64, error) {
 }
 
 func (e *Econ) RequestQty(id string) (float64, error) {
-	mkt, err := e.eng.GetComm(id)
+	mkt, err := e.eng.GetService(id)
 	if err != nil {
 		return 0, err
 	}

@@ -1,63 +1,28 @@
-// Package msg declares types and interfaces used for inter-agent
-// communication.
-package msg
+
+package sim
 
 import (
 	"github.com/rwcarlsen/goclus/trans"
 )
 
-var listeners []Listener
+var listeners []MsgListener
 
 type msgDir int
 
 const (
-	// Up indicates a message passage to/through parent channels - toward the
+	// UpMsg indicates a message passage to/through parent channels - toward the
 	// message receiver.
-	Up msgDir = iota
-	// Down indicates a return-trip message retracing its "Up" path - toward
+	UpMsg msgDir = iota
+	// DownMsg indicates a return-trip message retracing its "UpMsg" path - toward
 	// the message sender.
-	Down
+	DownMsg
 )
 
-type Group []*Message
+type MsgGroup []*Message
 
-// Communicator is implemented by all agents that require the ability to
-// communicate with other simulation agents.
-// Note that this method should generally not be invoked directly;
-// inter-agent message passing should be achieved via a message's SendOn
-// method.
-type Communicator interface {
-	Receive(*Message)
-	Parent() Communicator
-	SetParent(Communicator)
-}
-
-// Commy is provided as a convenient way to automatically satisfy the Parent and
-// SetParent methods of the Communicator interface.  Simply embed Commy
-// in the sim agent's struct:
-//
-//    type MyAgent struct {
-//       msg.Commy
-//       ...
-//    }
-type Commy struct {
-	p Communicator
-}
-
-// Parent returns the value passed via SetParent or nil if SetParent hasn't
-// been called.
-func (c *Commy) Parent() Communicator {
-	return c.p
-}
-
-// SetParent sets the value returned by Parent.
-func (c *Commy) SetParent(p Communicator) {
-	c.p = p
-}
-
-// Listener is implemented by entities that desire to receive notifications
+// MsgListener is implemented by entities that desire to receive notifications
 // every time a message is passed between any two simulation agents.
-type Listener interface {
+type MsgListener interface {
 	MsgNotify(*Message)
 }
 
@@ -67,7 +32,7 @@ type Listener interface {
 // These notifications are sent every time a message SendOn method is
 // called - before the receiver actually receives the message. Simulation
 // execution continues only after l's MsgNotify method returns.
-func ListenAll(l Listener) {
+func ListenAllMsg(l MsgListener) {
 	listeners = append(listeners, l)
 }
 
@@ -87,7 +52,7 @@ func notifyListeners(m *Message) {
 // 
 // Returning a message to its sender:
 //
-//    m.Dir = msg.Down
+//    m.Dir = msg.DownMsg
 //    m.SendOn()
 type Message struct {
 	// Dir defaults to Up (sending a message toward its receiver).
@@ -97,36 +62,36 @@ type Message struct {
 	Trans *trans.Transaction
 	// Payload can be used as desired to send arbitrary information.
 	Payload   interface{}
-	PrevOwner Communicator
-	Owner     Communicator
-	sender    Communicator
-	receiver  Communicator
-	pathStack []Communicator
+	PrevOwner Agent
+	Owner     Agent
+	sender    Agent
+	receiver  Agent
+	pathStack []Agent
 	hasDest   bool
 }
 
 // New creates a new message with receiver as the intended final destination. The
 // returned message is immediately sendable via the SendOn method.
-func New(sender, receiver Communicator) *Message {
+func NewMsg(sender, receiver Agent) *Message {
 	if receiver == nil {
 		panic("msg: cannot have nil message receiver")
 	}
 	return &Message{
-		Dir:       Up,
+		Dir:       UpMsg,
 		sender:    sender,
 		receiver:  receiver,
 		Owner:     sender,
-		pathStack: []Communicator{sender},
+		pathStack: []Agent{sender},
 	}
 }
 
 // Sender returns the communicator that originally sent this message.
-func (m *Message) Sender() Communicator {
+func (m *Message) Sender()Agent {
 	return m.sender
 }
 
 // Receiver returns the original intended recipient of this message.
-func (m *Message) Receiver() Communicator {
+func (m *Message) Receiver()Agent {
 	return m.receiver
 }
 
@@ -140,11 +105,11 @@ func (m *Message) Clone() *Message {
 
 // SendOn sends the message toward its intended destination.
 //
-// If the message Dir is Up and SetNext is not called, the message is sent
+// If the message Dir is UpMsg and SetNext is not called, the message is sent
 // to the current communicator's parent. If the current communicator has no
 // parent, the message is sent to its receiver as specified when the
 // message was created.
-// If the message Dir is Up and SetNext has been called, the message is sent to
+// If the message Dir is UpMsg and SetNext has been called, the message is sent to
 // the receiver specified in the SetNext call.
 //
 // If the message Dir is down, the message retraces its upward path sending
@@ -156,7 +121,7 @@ func (m *Message) SendOn() {
 
 	m.validateForSend()
 
-	if m.Dir == Down {
+	if m.Dir == DownMsg {
 		m.pathStack = m.pathStack[:len(m.pathStack)-1]
 	}
 
@@ -169,11 +134,11 @@ func (m *Message) SendOn() {
 }
 
 // SetNext allows manual specification of the next message receiver.
-// If the message Dir is Down, calls to SetNext do nothing, and the message
+// If the message Dir is DownMsg, calls to SetNext do nothing, and the message
 // will continue retrace its previous path with each SendOn invocation as
 // if SetNext had not been called.
-func (m *Message) SetNext(dest Communicator) {
-	if m.Dir == Down {
+func (m *Message) SetNext(dest Agent) {
+	if m.Dir == DownMsg {
 		return
 	}
 	m.pathStack = append(m.pathStack, dest)
@@ -191,10 +156,10 @@ func (m *Message) autoSetNext() {
 func (m *Message) validateForSend() {
 	hasDest := false
 	i := -1
-	if m.Dir == Up {
+	if m.Dir == UpMsg {
 		hasDest = len(m.pathStack) > 0
 		i = len(m.pathStack) - 1
-	} else if m.Dir == Down {
+	} else if m.Dir == DownMsg {
 		hasDest = len(m.pathStack) > 1
 		i = len(m.pathStack) - 2
 	}
