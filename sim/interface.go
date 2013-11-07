@@ -1,4 +1,3 @@
-
 package sim
 
 import (
@@ -18,7 +17,7 @@ type Agent interface {
 }
 
 // Agenty is provided as a convenient way to automatically satisfy the Id and
-// SetId methods of the Agent interface.  Simply embed Agenty in the sim 
+// SetId methods of the Agent interface.  Simply embed Agenty in the sim
 // agent's struct:
 //
 //    type MyAgent struct {
@@ -26,8 +25,8 @@ type Agent interface {
 //       ...
 //    }
 type Agenty struct {
-	id int
-	name string
+	id     int
+	name   string
 	parent Agent
 }
 
@@ -69,7 +68,7 @@ func (a *Agenty) SetParent(p Agent) {
 }
 
 // Receive does nothing
-func (a *Agenty) Receive(*Message) { }
+func (a *Agenty) Receive(*Message) {}
 
 type Starter interface {
 	Start(*Engine)
@@ -90,4 +89,3 @@ type Tocker interface {
 type Resolver interface {
 	Resolve()
 }
-

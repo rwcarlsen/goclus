@@ -1,4 +1,3 @@
-
 package sim
 
 import (
@@ -49,7 +48,7 @@ func notifyListeners(m *Message) {
 //    recv := eng.GetComm("foo")
 //    m := msg.New(a, recv)
 //    m.SendOn()
-// 
+//
 // Returning a message to its sender:
 //
 //    m.Dir = msg.DownMsg
@@ -86,12 +85,12 @@ func NewMsg(sender, receiver Agent) *Message {
 }
 
 // Sender returns the communicator that originally sent this message.
-func (m *Message) Sender()Agent {
+func (m *Message) Sender() Agent {
 	return m.sender
 }
 
 // Receiver returns the original intended recipient of this message.
-func (m *Message) Receiver()Agent {
+func (m *Message) Receiver() Agent {
 	return m.receiver
 }
 

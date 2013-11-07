@@ -33,8 +33,8 @@ func (m Map) normalize() {
 // maintained composition information is not duplicated.  If a copy is
 // neaded, use the Clone method.
 type Composition struct {
-	comp        Map
-	decayChilds *map[int]*Composition
+	comp            Map
+	decayChilds     *map[int]*Composition
 	decayFromParent int
 }
 
@@ -119,7 +119,7 @@ func (c *Composition) decay(delta int) *Composition {
 	// insert decay logic/algo here
 
 	return &Composition{
-		decayChilds: c.decayChilds, 
+		decayChilds:     c.decayChilds,
 		decayFromParent: c.decayFromParent + delta,
 		//comp: comp,
 	}

@@ -7,17 +7,17 @@ import (
 )
 
 type Engine struct {
-	Duration    time.Duration
-	Step        time.Duration
-	Load        *Loader
-	services    map[string]Agent
-	tickers     []Ticker
-	resolvers   []Resolver
-	tockers     []Tocker
-	starters    []Starter
-	enders      []Ender
-	tm          time.Time // current time (in the simulation)
-	nextId      int // the next agent ID
+	Duration  time.Duration
+	Step      time.Duration
+	Load      *Loader
+	services  map[string]Agent
+	tickers   []Ticker
+	resolvers []Resolver
+	tockers   []Tocker
+	starters  []Starter
+	enders    []Ender
+	tm        time.Time // current time (in the simulation)
+	nextId    int       // the next agent ID
 }
 
 // RegisterAll registers agent a to receive time-related notifications for

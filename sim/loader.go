@@ -15,10 +15,10 @@ type ProtoInfo struct {
 }
 
 type AgentInfo struct {
-	Name      string
-	ProtoId   string
+	Name       string
+	ProtoId    string
 	ParentName string
-	IsService bool
+	IsService  bool
 }
 
 type Loader struct {

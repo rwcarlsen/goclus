@@ -40,8 +40,8 @@ type agentData struct {
 type Books struct {
 	sim.Agenty
 	eng      *sim.Engine
-	tId		 int // next trans id tracker
-	eId		 int // next trans entry id tracker
+	tId      int // next trans id tracker
+	eId      int // next trans entry id tracker
 	done     chan bool
 	transIn  chan *trans.Transaction
 	msgIn    chan *sim.Message
@@ -125,10 +125,10 @@ func (b *Books) regAgent(a sim.Agent) {
 
 	tp := reflect.Indirect(reflect.ValueOf(a)).Type()
 	b.agentDat[a.Id()] = &agentData{
-		Id:       a.Id(),
-		Name: 	  a.Name(),
-		Type:     tp.PkgPath() + "." + tp.Name(),
-		Born:     b.getTime(),
+		Id:   a.Id(),
+		Name: a.Name(),
+		Type: tp.PkgPath() + "." + tp.Name(),
+		Born: b.getTime(),
 	}
 
 	// this comes last to prevent infinite looping

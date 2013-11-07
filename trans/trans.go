@@ -28,7 +28,7 @@ type Listener interface {
 // ListenAll adds l to a global list of agents that receive notifications
 // for every approved transaction (usually used by "special" agents e.g.
 // book-keeper, etc.).
-// These notifications are sent when the Approve method is called - 
+// These notifications are sent when the Approve method is called -
 // before Approve returns and directly after the resource transfer.
 // Simulation execution continues only after l's TransNotify method returns.
 func ListenAll(l Listener) {
